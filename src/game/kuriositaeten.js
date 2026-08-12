@@ -97,7 +97,10 @@ export const KURIOSUM = {
  * - Tag 1 und 2 bleiben frei. Wer die Regeln noch lernt, soll nicht an einem
  *   Sonderfall lernen, was normal ist.
  * - Tag 4, 8 und 10 bleiben frei. Dort ergeht eine Anordnung, und die soll
- *   ohne Konkurrenz wirken.
+ *   ohne Konkurrenz wirken. Tag 12 ist die Ausnahme von dieser Regel: Die
+ *   Anordnung liegt dort auf dem allerletzten Vorgang, der Ausreißer irgendwo
+ *   in der Schicht davor. Sie kommen einander nicht in die Quere – der letzte
+ *   Platz ist für Kuriositäten ohnehin gesperrt.
  * - Der Rest wechselt sich ab, damit keine der beiden Sorten zur Gewohnheit
  *   wird, und reicht bis Tag 12 – gerade die letzten, langen Schichten
  *   vertragen ein Durchatmen.

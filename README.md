@@ -104,6 +104,49 @@ Die mittlere Anordnung trifft bewusst niemanden, den man kennt, sondern
 jeden, der zufällig bei der falschen Ärztin war. So wächst sich eine
 Maßnahme aus: erst ein Name, dann ein Merkmal.
 
+## Tag 12: der letzte Vorgang
+
+Der Schlusstag war lange der vierzehnte Vorgang wie jeder andere. Jetzt läuft
+alles zusammen, was das Spiel über dich weiß.
+
+Alle drei Stammgäste treten ein letztes Mal an, und ihre Zeile hängt nicht
+mehr an der letzten Begegnung, sondern am ganzen Verlauf – dafür darf ein
+Auftritt statt fester Varianten eine Funktion mitbringen (`zeileAus`). Ein
+Wiedersehen kommt mit „letztes Mal haben Sie …" aus, ein Abschied nicht.
+
+**Milan Petrov steht garantiert an letzter Stelle.** Zum ersten Mal in zwölf
+Tagen sind seine Papiere einwandfrei – er hat seine Mutter geweckt. Und genau
+heute steht schon am Morgen in der Dienstanweisung:
+
+> Von dem Schüler Milan Petrov, 9b, sind keine Entschuldigungen mehr
+> anzunehmen.
+> *Die Vorgänge der vergangenen Wochen sind dem Rektorat bekannt.*
+
+Die einzige Anordnung im Spiel, die einen Namen nennt statt eines Merkmals –
+und die Begründung ist die Pointe. Wer ihn elf Tage lang gedeckt hat, liest
+darin, dass es aufgefallen ist. Wer ihn jedes Mal abgewiesen hat, liest
+dasselbe und weiß nicht, ob es um ihn geht oder um einen selbst. Das Rektorat
+sagt es nicht.
+
+Danach kommt kein Vorgang mehr. `letzter: true` erzwingt den allerletzten
+Platz der Schicht – ein Abschied, auf den noch drei Fremde folgen, ist keiner.
+Der letzte Platz ist außerdem für Kuriositäten gesperrt.
+
+### Ein Stammgast darf seine Klasse nicht verlieren
+
+Beim Bauen aufgefallen: Emil stand an Tag 12 plötzlich in der 10a statt in der
+7a. Ursache war die Kollisionsauflösung, die einen Schüler ohne Attest aus
+einer Klausurklasse herausschiebt, damit die Fehlerquote stimmt. Für einen
+beliebigen Schüler ist das richtig – bei einer Figur nimmt es ihr das, was sie
+über zwölf Tage wiedererkennbar macht. Acht Tage zuvor hatte eine Anordnung
+genau seine Klasse genannt.
+
+Gelöst an der Wurzel: Der Klausurplan schließt die Klassen der heute
+auftretenden Stammgäste von vornherein aus. Die Auflösung bloß für Figuren zu
+überspringen hätte nicht gereicht – dann stünde ein Stammgast ohne Attest in
+einer Klausurklasse und hätte einen Verstoß, den das Drehbuch nie vorgesehen
+hat. Betroffen war übrigens auch Tag 11, lange bevor es Tag 12 gab.
+
 ## Wenn Geld im Spiel war
 
 Dreistufig, und zwar bewusst: Ein sofortiger Rauswurf wäre billig – man lädt

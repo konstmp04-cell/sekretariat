@@ -52,9 +52,26 @@ const FAECHER = ['Mathematik', 'Deutsch', 'Englisch', 'Biologie', 'Geschichte', 
 export function klausurplan(day) {
   const { pick, int } = rngHelpers(makeRng(hashSeed(`klausur-${day}`)))
   const anzahl = int(2, 3)
+
+  // Die Klassen der heute auftretenden Stammgäste bleiben außen vor.
+  //
+  // Sonst greift weiter unten die Kollisionsauflösung und schiebt ihnen eine
+  // andere Klasse unter – und damit verliert eine Figur ausgerechnet das,
+  // was sie über zwölf Tage wiedererkennbar macht. Emil stand an Tag 12
+  // plötzlich in der 10a statt in der 7a, obwohl acht Tage zuvor eine
+  // Anordnung genau seine Klasse genannt hatte.
+  //
+  // An der Wurzel gelöst statt an der Wirkung: Die Auflösung dürfte man auch
+  // für Figuren überspringen, dann stünde ein Stammgast aber ohne Attest in
+  // einer Klausurklasse und hätte einen Verstoß, den das Drehbuch nie
+  // vorgesehen hat. Kommt die Klasse gar nicht erst in den Plan, kann beides
+  // nicht passieren.
+  const gesperrt = new Set(auftritteAmTag(day).map(({ figur }) => figur.klasse))
+  const moeglich = KLASSEN.filter((k) => !gesperrt.has(k))
+
   const gewaehlt = []
   while (gewaehlt.length < anzahl) {
-    const k = pick(KLASSEN)
+    const k = pick(moeglich)
     if (!gewaehlt.some((e) => e.klasse === k)) gewaehlt.push({ klasse: k, fach: pick(FAECHER) })
   }
   return gewaehlt
@@ -313,7 +330,15 @@ export function buildQueue(day, laenge = 8) {
   // Stammgäste zuerst: Ihre Auftritte stehen im Drehbuch und dürfen nicht
   // von einer nachträglich eingesetzten Regel verdrängt werden. Sie zählen
   // in die Quote hinein, statt obendrauf zu kommen.
+  //
+  // `letzter` erzwingt den allerletzten Platz der Schicht. Das gibt es genau
+  // einmal, an Tag 12: Danach kommt kein Vorgang mehr, nur noch die
+  // Abrechnung. Ein Abschied, auf den noch drei Fremde folgen, ist keiner.
   for (const { figur, auftritt } of auftritteAmTag(day)) {
+    if (auftritt.letzter) {
+      zuteilung[laenge - 1] = { verstoss: auftritt.verstoss, figur, auftritt }
+      continue
+    }
     const frei = freieStellen()
     const stelle = frei.length ? pick(frei) : 1
     zuteilung[stelle] = { verstoss: auftritt.verstoss, figur, auftritt }
@@ -392,6 +417,9 @@ export function buildQueue(day, laenge = 8) {
     const heuteNeu = new Set(neueRegeln(day).map((r) => r.id))
     const frei = (a, i) =>
       i > 0 &&
+      // Der letzte Vorgang gehört an Tag 12 dem Abschied. Ein Gag an dieser
+      // Stelle wäre nicht bloß fehl am Platz, er stünde im Weg.
+      i < laenge - 1 &&
       !a.figur &&
       !heuteNeu.has(a.verstoss) &&
       !(anw && a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))

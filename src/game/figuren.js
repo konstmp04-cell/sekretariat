@@ -49,6 +49,27 @@ export const FIGUREN = [
         wennDurchgelassen: 'Sie wissen längst, dass die nicht von ihr sind. Sie haben trotzdem gestempelt.',
         wennAbgewiesen: 'Meine Mutter arbeitet nachts. Sie kriegt gar nicht mit, dass ich fehle.',
       },
+      // Der letzte Vorgang des Spiels.
+      //
+      // Zum ersten Mal sind seine Papiere in Ordnung – er hat seine Mutter
+      // geweckt. Und genau heute steht in der Dienstanweisung, dass von ihm
+      // nichts mehr anzunehmen ist. Beide Systeme, die das Spiel aufgebaut
+      // hat, treffen hier aufeinander: der Mensch, den man über elf Tage
+      // kennengelernt hat, und die Anordnung, für die es keine Begründung
+      // gibt.
+      12: {
+        verstoss: VERSTOSS.KEINER,
+        letzter: true,
+        text: 'Diesmal stimmt alles. Sehen Sie ruhig genau hin.',
+        zeileAus: (verlauf) => {
+          const durch = verlauf.filter((x) => x.entscheidung !== 'deny').length
+          const ab = verlauf.filter((x) => x.entscheidung === 'deny').length
+          if (durch >= 3) return 'Ich hab sie geweckt. Nach allem, was Sie für mich getan haben, war das das Mindeste.'
+          if (ab >= 3) return 'Ich hab sie geweckt. Extra für Sie. Jetzt können Sie nichts mehr sagen.'
+          if (durch > ab) return 'Diesmal ist es echt. Sie haben mir geglaubt, als es das nicht war.'
+          return 'Diesmal ist es echt. Prüfen Sie es. Bitte.'
+        },
+      },
     },
   },
   {
@@ -74,6 +95,16 @@ export const FIGUREN = [
         wennBestochen: 'Ich hab Ihnen letztes Mal was hingelegt. Das bleibt unter uns, ja?',
         wennAbgewiesen: 'Sie haben mein Geld nicht genommen. Das fand ich … überraschend.',
       },
+      12: {
+        verstoss: VERSTOSS.DATUM,
+        text: 'Letzter Tag. Schauen Sie einmal drüber, ja?',
+        zeileAus: (verlauf) => {
+          if (verlauf.some((x) => x.entscheidung === 'bestochen')) {
+            return 'Letzter Tag. Ich hab diesmal nichts dabei – nur den Zettel.'
+          }
+          return 'Letzter Tag. Ich versuchs gar nicht erst mit was anderem.'
+        },
+      },
     },
   },
   {
@@ -95,6 +126,15 @@ export const FIGUREN = [
         text: 'Wir waren nicht beim Arzt. Mein Vater konnte nicht, er liegt selbst flach. Es stimmt aber alles.',
         wennDurchgelassen: 'Sie waren neulich nett zu mir. Ich hab kein Attest, wir waren nicht beim Arzt.',
       },
+      12: {
+        verstoss: VERSTOSS.KEINER,
+        text: 'Meinem Vater gehts wieder besser. Er hat das hier selbst geschrieben.',
+        zeileAus: (verlauf) => {
+          const ab = verlauf.filter((x) => x.entscheidung === 'deny').length
+          if (ab >= 2) return 'Meinem Vater gehts wieder besser. Diesmal ist alles dabei, was Sie brauchen.'
+          return 'Meinem Vater gehts wieder besser. Er hat das hier selbst geschrieben.'
+        },
+      },
     },
   },
 ]
@@ -113,6 +153,11 @@ export function auftritteAmTag(day) {
  * @param {Array<{entscheidung: string}>} verlauf  frühere Begegnungen
  */
 export function zeileFuer(auftritt, verlauf = []) {
+  // Eine eigene Funktion hat Vorrang. Die drei festen Varianten unten
+  // („durchgelassen / abgewiesen / bestochen") reichen für ein Wiedersehen,
+  // aber nicht für einen Abschied: Am letzten Tag zählt nicht die letzte
+  // Begegnung, sondern wie oft man sich insgesamt so oder so entschieden hat.
+  if (typeof auftritt.zeileAus === 'function') return auftritt.zeileAus(verlauf)
   const letzte = verlauf[verlauf.length - 1]
   if (!letzte) return auftritt.text
   if (letzte.entscheidung === 'bestochen' && auftritt.wennBestochen) return auftritt.wennBestochen

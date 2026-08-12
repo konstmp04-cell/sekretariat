@@ -72,6 +72,24 @@ export const ANWEISUNGEN = [
     // vorlegt – und beim letzten Mal versucht hat, den Schalter zu kaufen.
     betrifft: (a) => a.klasse === '10a',
   },
+  {
+    tag: 12,
+    id: 'petrov',
+    kurz: 'Milan Petrov',
+    text: 'Von dem Schüler Milan Petrov, 9b, sind keine Entschuldigungen mehr anzunehmen.',
+    begruendung: 'Die Vorgänge der vergangenen Wochen sind dem Rektorat bekannt.',
+    // Der letzte Vorgang des Spiels, und die einzige Anordnung, die einen
+    // Namen nennt statt eines Merkmals. Genau darauf laufen beide Systeme
+    // zu: Milan bringt heute zum ersten Mal einwandfreie Papiere – er hat
+    // seine Mutter geweckt –, und ausgerechnet heute steht schon am Morgen
+    // in der Dienstanweisung, dass von ihm nichts mehr anzunehmen ist.
+    //
+    // Die Begründung ist die Pointe. Wer ihn elf Tage lang gedeckt hat,
+    // liest darin, dass es aufgefallen ist. Wer ihn jedes Mal abgewiesen
+    // hat, liest dasselbe – und weiß nicht, ob es um ihn geht oder um einen
+    // selbst. Das Rektorat sagt es nicht.
+    betrifft: (a) => a.figur?.id === 'milan',
+  },
 ]
 
 /** Gilt an diesem Tag eine Anweisung? */
