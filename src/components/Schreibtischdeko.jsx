@@ -11,6 +11,12 @@
  *
  * Alles hier ist reine Kulisse – `pointer-events: none` und unterhalb der
  * Dokumente, damit nichts das Verschieben stört.
+ *
+ * Der Tisch altert über die zwölf Tage: mehr Kaffeeränder, mehr Kratzer.
+ * Bewusst so langsam, dass es niemand bemerkt – zwischen zwei Tagen kommt
+ * je ein Ring oder Kratzer dazu. Gespürt wird es trotzdem: An Tag 12 sieht
+ * der Arbeitsplatz benutzt aus, an Tag 1 sah er ordentlich aus, und dazwischen
+ * hat man selbst dort gesessen.
  */
 
 /** Tasse von oben – der Kaffee ist längst kalt. */
@@ -29,7 +35,35 @@ function Tasse() {
   )
 }
 
-export default function Schreibtischdeko() {
+/** Alle möglichen Spuren – aufgedeckt wird davon nur der Anfang der Liste. */
+const KAFFEERAENDER = [
+  { left: '72%', top: '76%', r: 30 },
+  { left: '78%', top: '68%', r: 22 },
+  { left: '64%', top: '84%', r: 26 },
+  { left: '12%', top: '18%', r: 19 },
+  { left: '83%', top: '81%', r: 15 },
+  { left: '55%', top: '12%', r: 24 },
+  { left: '30%', top: '88%', r: 17 },
+]
+
+const KRATZER = [
+  'M 88 62 l 130 -14',
+  'M 1180 520 l 96 22',
+  'M 1220 130 l 60 -8',
+  'M 150 560 l 80 10',
+  'M 1090 600 l 120 -30',
+  'M 420 92 l 150 12',
+  'M 700 640 l -110 16',
+  'M 980 240 l 70 -22',
+  'M 260 380 l 96 -6',
+  'M 1140 330 l -84 18',
+]
+
+export default function Schreibtischdeko({ tag = 1 }) {
+  // Zwei Ringe und fünf Kratzer zu Beginn, danach je Tag einer mehr.
+  const ringe = KAFFEERAENDER.slice(0, Math.min(KAFFEERAENDER.length, 2 + Math.floor(tag / 2)))
+  const kratzer = KRATZER.slice(0, Math.min(KRATZER.length, 5 + Math.floor(tag / 2.5)))
+
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none">
       {/* --- Schreibunterlage ------------------------------------------- */}
@@ -87,11 +121,8 @@ export default function Schreibtischdeko() {
             }}
           />
         ))}
-        {/* Kaffeeränder auf der Unterlage */}
-        {[
-          { left: '72%', top: '76%', r: 30 },
-          { left: '78%', top: '68%', r: 22 },
-        ].map((k, i) => (
+        {/* Kaffeeränder auf der Unterlage – mit den Tagen werden es mehr. */}
+        {ringe.map((k, i) => (
           <div
             key={i}
             className="absolute rounded-full"
@@ -109,13 +140,7 @@ export default function Schreibtischdeko() {
 
       {/* --- Kratzer in der Tischplatte ---------------------------------- */}
       <svg className="absolute inset-0 h-full w-full opacity-[0.13]">
-        {[
-          'M 88 62 l 130 -14',
-          'M 1180 520 l 96 22',
-          'M 1220 130 l 60 -8',
-          'M 150 560 l 80 10',
-          'M 1090 600 l 120 -30',
-        ].map((d, i) => (
+        {kratzer.map((d, i) => (
           <path key={i} d={d} stroke="#e8e2d2" strokeWidth="1" fill="none" />
         ))}
       </svg>

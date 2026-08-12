@@ -7,8 +7,10 @@
  */
 
 import Paper from './Paper.jsx'
+import { wetterAmTag } from '../game/wetter.js'
 
 export default function Schuelerzeitung({ meldungen, info }) {
+  const wetter = wetterAmTag(info.tag)
   return (
     <Paper seed={5000 + info.tag} width={268} tilt={-1.2} className="p-5">
       <div className="border-b-4 border-double border-ink-900/70 pb-1 text-center">
@@ -26,6 +28,18 @@ export default function Schuelerzeitung({ meldungen, info }) {
         </span>
         <span className="font-form text-[7px] uppercase tracking-widest text-ink-500">
           Ausgabe {info.tag}
+        </span>
+      </div>
+
+      {/* Die Wetterzeile ist die Erklärung für das Licht am Schalter. Ohne
+          sie fragt sich der Spieler, warum es an manchen Tagen nie warm
+          wird; mit ihr hat er es am Morgen selbst gelesen. */}
+      <div className="flex justify-between border-b border-ink-500/25 py-[3px]">
+        <span className="font-form text-[7px] uppercase tracking-widest text-ink-500">
+          Wetter
+        </span>
+        <span className="font-form text-[7px] uppercase tracking-widest text-ink-700">
+          {wetter.wort} · {wetter.grad} °C
         </span>
       </div>
 

@@ -25,6 +25,7 @@ import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
+import { lichtDaempfung } from './game/wetter.js'
 import { spiele, ladeTonEinstellung, raumklangStarten, raumklangStoppen } from './game/audio.js'
 
 ladeTonEinstellung()
@@ -168,8 +169,9 @@ function Schalter({ stand, info, dispatch }) {
 
   const a = queue[Math.min(stand.index, queue.length - 1)]
 
-  // Der Stand der Sonne, abgeleitet aus dem Stand der Arbeit.
-  const licht = lichtFuer(fortschrittImTag(stand.index, info.anzahl))
+  // Der Stand der Sonne, abgeleitet aus dem Stand der Arbeit – gedämpft vom
+  // Wetter, das am Morgen in der Zeitung stand.
+  const licht = lichtFuer(fortschrittImTag(stand.index, info.anzahl), lichtDaempfung(info.tag))
 
   // Frühere Begegnungen mit dieser Figur – daraus entsteht ihre Zeile.
   // Nur frühere Tage zählen als Vorgeschichte.
@@ -384,7 +386,7 @@ function Schalter({ stand, info, dispatch }) {
 
       {/* --- Schreibtisch -------------------------------------------------- */}
       <div className="desk-surface absolute inset-x-0 bottom-0 top-[32%] border-t-4 border-desk-600">
-        <Schreibtischdeko />
+        <Schreibtischdeko tag={info.tag} />
 
         {/* Freie Ablagefläche: Die Dokumente liegen übereinander und lassen
             sich mit der Maus auseinanderschieben. */}

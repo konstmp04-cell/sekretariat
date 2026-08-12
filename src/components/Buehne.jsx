@@ -72,7 +72,50 @@ export default function Buehne({ children }) {
 
   return (
     <div className="h-full w-full" style={{ zoom: skala }}>
+      <SchmalHinweis />
       {children}
+    </div>
+  )
+}
+
+/**
+ * Hinweis auf schmalen Bildschirmen.
+ *
+ * Der Schalter ist für einen Rechnerbildschirm gebaut: Die Schülerakte startet
+ * auf einem Telefon außerhalb des sichtbaren Bereichs, und ohne sie gibt es
+ * keine hinterlegte Unterschrift zum Vergleichen – also keine Spielhandlung.
+ *
+ * Ein Handy-Layout wäre die richtige Antwort, steht aber noch aus. Bis dahin
+ * ist dieser Satz die zweitbeste: Er kostet nichts und macht aus „das Spiel
+ * ist kaputt" ein „das Spiel gehört woanders hin". Wer ihn wegklickt, darf
+ * trotzdem weiterprobieren – bevormundet wird niemand.
+ */
+function SchmalHinweis() {
+  const [weg, setWeg] = useState(false)
+  const [schmal, setSchmal] = useState(false)
+
+  useEffect(() => {
+    const messen = () => setSchmal(window.innerWidth < 1024)
+    messen()
+    window.addEventListener('resize', messen)
+    return () => window.removeEventListener('resize', messen)
+  }, [])
+
+  if (!schmal || weg) return null
+  return (
+    <div className="fixed inset-x-0 top-0 z-[100] flex items-start justify-between gap-3 border-b border-brass/40 bg-desk-900/95 px-4 py-3 text-left">
+      <p className="font-form text-[11px] leading-snug text-paper-200">
+        Für einen größeren Bildschirm gebaut.
+        <span className="block text-paper-400/70">
+          Auf schmalen Geräten liegen Dokumente außerhalb des Bildes.
+        </span>
+      </p>
+      <button
+        onClick={() => setWeg(true)}
+        className="shrink-0 rounded-sm border border-brass/50 px-2 py-1 font-form text-[10px] uppercase tracking-widest text-brass"
+      >
+        Trotzdem
+      </button>
     </div>
   )
 }

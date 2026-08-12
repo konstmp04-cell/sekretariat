@@ -12,11 +12,42 @@
  * schlecht zu machen.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Paper from './Paper.jsx'
 import Stamp from './Stamp.jsx'
 import { ENDE, note } from '../game/spielstand.js'
 import { spiele } from '../game/audio.js'
+
+/**
+ * Das Ergebnis als Text, zum Zurückschicken.
+ *
+ * Zum Testen gedacht: „War ganz cool" lässt sich nicht vergleichen, zwei
+ * Zeugnisse nebeneinander schon. Vor allem verrät die Aufteilung mehr als die
+ * Note – wer durchwinkt und wer Unschuldige abweist, hat auf dieselbe Weise
+ * schlecht gespielt und auf völlig verschiedene Art.
+ */
+function alsText(stand, ende, n, quote) {
+  const g = stand.gesamt
+  const zeilen = [
+    'SEKRETARIAT – Abschlusszeugnis',
+    `Ende: ${ende}`,
+    `Tage im Dienst: ${stand.tag} von 12`,
+    `Vorgänge: ${g.richtig + g.falsch}`,
+    `Korrekt: ${g.richtig} · Beanstandet: ${g.falsch} (${Math.round(quote * 100)} %)`,
+    `Note: ${n.zahl} – ${n.wort}`,
+    `Verstöße erkannt: ${g.erwischt} von ${g.verstoesse}`,
+    `Durchgewunken: ${g.verstoesse - g.erwischt} · Zu Unrecht abgewiesen: ${g.zuUnrecht}`,
+  ]
+  const anw = stand.anweisungen.befolgt + stand.anweisungen.verweigert
+  if (anw > 0) {
+    zeilen.push(
+      `Anordnungen: ${stand.anweisungen.befolgt} befolgt, ${stand.anweisungen.verweigert} nicht`,
+    )
+  }
+  if (stand.bestechungen > 0) zeilen.push(`Zuwendungen angenommen: ${stand.bestechungen}`)
+  zeilen.push(`Ansehen: Rektorat ${Math.round(stand.ruf.rektor)} % · Schülerschaft ${Math.round(stand.ruf.schueler)} %`)
+  return zeilen.join('\n')
+}
 
 const ENDTEXTE = {
   [ENDE.ENTLASSEN]: {
@@ -62,6 +93,7 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
   // Bei Freistellung wird kein Zeugnis ausgestellt, sondern ein Bescheid –
   // dasselbe Papier, dieselbe Amtssprache, aber ohne Note.
   const bescheid = ende === ENDE.DISZIPLINAR
+  const [kopiert, setKopiert] = useState(false)
 
   useEffect(() => {
     // Ein einzelner Stempelschlag: die Akte wird geschlossen.
@@ -210,15 +242,48 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
           )}
         </Paper>
 
-        <button
-          onClick={() => {
-            spiele('klick')
-            onTitel()
-          }}
-          className="mt-8 rounded-sm border-2 border-brass/70 bg-desk-800 px-12 py-3 font-form text-[13px] font-bold uppercase tracking-[0.16em] text-brass shadow-lg transition hover:bg-brass hover:text-desk-900"
-        >
-          Zurück zum Titel
-        </button>
+        <div className="mt-8 flex items-center gap-4">
+          <button
+            onClick={() => {
+              spiele('klick')
+              onTitel()
+            }}
+            className="rounded-sm border-2 border-brass/70 bg-desk-800 px-12 py-3 font-form text-[13px] font-bold uppercase tracking-[0.16em] text-brass shadow-lg transition hover:bg-brass hover:text-desk-900"
+          >
+            Zurück zum Titel
+          </button>
+
+          <button
+            onClick={async () => {
+              spiele('klick')
+              const text = alsText(stand, endText.titel, n, quote)
+              try {
+                await navigator.clipboard.writeText(text)
+                setKopiert(true)
+              } catch {
+                // Ohne Zwischenablage (kein HTTPS, verweigerte Freigabe) bleibt
+                // der Umweg über ein Textfeld – lieber altmodisch als gar nicht.
+                const feld = document.createElement('textarea')
+                feld.value = text
+                feld.style.position = 'fixed'
+                feld.style.opacity = '0'
+                document.body.appendChild(feld)
+                feld.select()
+                try {
+                  document.execCommand('copy')
+                  setKopiert(true)
+                } catch {
+                  setKopiert(false)
+                }
+                feld.remove()
+              }
+              setTimeout(() => setKopiert(false), 2200)
+            }}
+            className="rounded-sm border border-paper-400/40 px-5 py-3 font-form text-[11px] uppercase tracking-[0.14em] text-paper-400 transition hover:border-brass/70 hover:text-brass"
+          >
+            {kopiert ? 'Kopiert' : 'Ergebnis kopieren'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -43,9 +43,10 @@ const misch = (a, b, t) => a + (b - a) * t
 
 /**
  * @param {number} fortschritt 0 = Schichtbeginn, 1 = letzter Vorgang
+ * @param {{waerme: number, zusatzDunkel: number}} [wetter] Dämpfung aus wetter.js
  * @returns {{schein: string, hoehe: number, wandton: string}}
  */
-export function lichtFuer(fortschritt) {
+export function lichtFuer(fortschritt, wetter = { waerme: 1, zusatzDunkel: 0 }) {
   const f = Math.max(0, Math.min(1, fortschritt))
   // Zwischen den drei Stationen linear überblenden.
   const abschnitt = f < 0.5 ? 0 : 1
@@ -53,12 +54,20 @@ export function lichtFuer(fortschritt) {
   const a = STATIONEN[abschnitt]
   const b = STATIONEN[abschnitt + 1]
 
-  const rot = Math.round(misch(a.rot, b.rot, t))
-  const gruen = Math.round(misch(a.gruen, b.gruen, t))
-  const blau = Math.round(misch(a.blau, b.blau, t))
-  const staerke = misch(a.staerke, b.staerke, t)
-  const hoehe = Math.round(misch(a.hoehe, b.hoehe, t))
-  const dunkel = misch(a.dunkel, b.dunkel, t)
+  // Das Wetter zieht den Tagesverlauf zum Morgen zurück. Bei Regen bleibt es
+  // den ganzen Tag bei kaltem, flachem Licht – der Nachmittag findet einfach
+  // nicht statt. Gemischt wird gegen Station 0, nicht gegen Grau: Ein
+  // entsättigter Sonnenuntergang sähe nach kaputtem Bildschirm aus, ein
+  // ausbleibender nach schlechtem Wetter.
+  const w = Math.max(0, Math.min(1, wetter.waerme))
+  const zu = (wert, morgens) => misch(morgens, wert, w)
+
+  const rot = Math.round(zu(misch(a.rot, b.rot, t), STATIONEN[0].rot))
+  const gruen = Math.round(zu(misch(a.gruen, b.gruen, t), STATIONEN[0].gruen))
+  const blau = Math.round(zu(misch(a.blau, b.blau, t), STATIONEN[0].blau))
+  const staerke = zu(misch(a.staerke, b.staerke, t), STATIONEN[0].staerke)
+  const hoehe = Math.round(zu(misch(a.hoehe, b.hoehe, t), STATIONEN[0].hoehe))
+  const dunkel = misch(a.dunkel, b.dunkel, t) + (wetter.zusatzDunkel ?? 0)
 
   return {
     schein: `radial-gradient(ellipse 46% 66% at 50% 100%, rgb(${rot} ${gruen} ${blau} / ${staerke.toFixed(3)}), transparent 72%)`,

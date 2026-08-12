@@ -465,6 +465,67 @@ Vordergrund, der den wichtigsten Klang des Spiels zudeckt. Jetzt liegt er bei
 | Papier | 0.17 | 126 ms |
 | Haken | 0.14 | 134 ms |
 
+### Wetter sieht man nur am Licht
+
+Der erste Gedanke war Regen am Fenster. Der geht nicht, und zwar aus einem
+Grund, der beim Hinsehen sofort auffällt: **Das Sekretariat hat kein Fenster
+nach draußen.** Sichtbar sind der Schalter zum Flur und die Rückwand.
+Regentropfen ließen sich nur an eine Scheibe zeichnen, die es nicht gibt.
+
+So merkt man Wetter in einem Innenraum ohnehin nicht. Man merkt es am Licht:
+An einem Regentag bleibt es flach und kalt und wird nie warm, so spät es auch
+wird – der Nachmittag findet einfach nicht statt. Das Wetter greift deshalb in
+den Tagesverlauf ein, statt etwas obendrauf zu zeichnen.
+
+Die Tage sind an die Zeitung gebunden. Am vierten meldet der Pausenhof
+„Turnhalle nach Wasserschaden gesperrt" – dass es an genau diesem Tag regnet,
+macht aus zwei Systemen eines. Im Kopf der Zeitung steht die Wetterzeile
+(`Dauerregen · 6 °C`), und damit hat der Spieler die Erklärung für das Licht
+am Morgen selbst gelesen.
+
+### Der Schreibtisch altert
+
+Über die zwölf Tage kommen Kaffeeränder und Kratzer dazu: von drei auf sieben
+Ringe, von fünf auf neun Kratzer. Bewusst so langsam, dass es niemand bemerkt.
+Gespürt wird es trotzdem – an Tag 12 sieht der Arbeitsplatz benutzt aus, an
+Tag 1 sah er ordentlich aus, und dazwischen hat man selbst dort gesessen.
+
+### Ergebnis kopieren
+
+Im Zeugnis steht ein zweiter Knopf, der das Ergebnis als Text in die
+Zwischenablage legt. Zum Testen gedacht: „War ganz cool" lässt sich nicht
+vergleichen, zwei Zeugnisse nebeneinander schon. Vor allem verrät die
+Aufteilung mehr als die Note – wer durchwinkt und wer Unschuldige abweist, hat
+auf völlig verschiedene Art schlecht gespielt.
+
+```
+SEKRETARIAT – Abschlusszeugnis
+Ende: Halbjahr überstanden
+Tage im Dienst: 12 von 12
+Vorgänge: 132
+Korrekt: 115 · Beanstandet: 17 (87 %)
+Note: 2 – gut
+Verstöße erkannt: 41 von 53
+Durchgewunken: 12 · Zu Unrecht abgewiesen: 4
+Anordnungen: 3 befolgt, 3 nicht
+Zuwendungen angenommen: 1
+Ansehen: Rektorat 11 % · Schülerschaft 100 %
+```
+
+Fällt die Zwischenablage aus (kein HTTPS, verweigerte Freigabe), geht es über
+ein unsichtbares Textfeld – lieber altmodisch als gar nicht.
+
+### Auf schmalen Bildschirmen: ein Satz statt eines Rätsels
+
+Der Schalter ist für einen Rechnerbildschirm gebaut. Auf einem Telefon startet
+die Schülerakte außerhalb des sichtbaren Bereichs, und ohne sie gibt es keine
+hinterlegte Unterschrift zum Vergleichen – also keine Spielhandlung. Ein
+Handy-Layout wäre die richtige Antwort, steht aber noch aus.
+
+Bis dahin erscheint unter 1024 px ein Hinweis. Er kostet nichts und macht aus
+„das Spiel ist kaputt" ein „das Spiel gehört woanders hin". Wegklicken lässt
+er sich trotzdem – bevormundet wird niemand.
+
 ### Galerie-Ansicht
 
 Unter `#galerie` liegen viele Porträts nebeneinander. Einzeln durchklicken
