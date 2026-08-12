@@ -490,6 +490,57 @@ Daraus folgt die sechste Regel (ab Tag 9): Das Attest muss **sämtliche**
 Fehltage abdecken. Wer nur prüft, *ob* ein Attest beiliegt, übersieht das –
 und genau darin unterscheidet sie sich von der Attestpflicht aus Tag 3.
 
+## Auf großen Bildschirmen wächst die Bühne mit
+
+Der Schalter ist durchweg in festen Pixeln gebaut: 392 Pixel breite
+Entschuldigungen, 11 Pixel hohe Schrift, ein 44x52-Porträt. Für Pixelkunst ist
+das richtig – eine Zeile, die auf halbe Pixel fällt, franst aus.
+
+Nur bleibt dadurch auf einem 27-Zoll-Monitor alles exakt so groß wie auf einem
+13-Zoll-Laptop, obwohl man doppelt so weit weg sitzt. Das Spiel wird nicht
+kleiner, es wird bloß von weiter weg betrachtet – und die Schrift war für
+Laptop-Abstand ausgelegt.
+
+`Buehne.jsx` skaliert deshalb das Ganze nach Fenstergröße, in Viertelstufen
+und gedeckelt bei 1,6:
+
+| Fenster | Faktor | Unterschrift |
+| --- | --- | --- |
+| 1366x768 | 1,0 | 338 px |
+| 1600x900 | 1,0 | 338 px |
+| 1920x1080 | 1,25 | 423 px |
+| 2560x1440 | 1,6 | 541 px |
+
+**`zoom`, nicht `transform: scale`.** Der Unterschied entscheidet: `zoom`
+skaliert das Layout, prozentuale Positionen und Umbrüche gelten weiter, die
+Kulisse füllt das Fenster wie vorher. `scale` würde die fertige Zeichnung
+nachträglich vergrößern – das ergäbe einen Briefmarkenrahmen mit schwarzen
+Balken drumherum.
+
+### Was daran gefährlich ist
+
+`zoom` lässt zwei Koordinatensysteme auseinanderfallen. `clientX` und
+`getBoundingClientRect()` liefern **sichtbare** Pixel, `left`/`top` und
+`offsetWidth` dagegen die des **Layouts**. Jede Stelle, die beide verrechnet,
+lässt das Papier dem Zeiger um den Faktor davonlaufen – bei 1,6 also um 60 %
+zu weit.
+
+Betroffen waren das Verschieben der Dokumente und die Lupe. Beide messen den
+Faktor jetzt selbst, statt ihn durchgereicht zu bekommen:
+
+```js
+eltern.getBoundingClientRect().width / eltern.offsetWidth
+```
+
+Gemessen statt durchgereicht, weil sich die Browser-Vergrößerung obendrauf
+multipliziert – ein durchgereichter Wert wüsste davon nichts.
+
+Geprüft wird das nicht mit dem Auge, sondern mit der Zahl: Der Test zieht bei
+jeder Fenstergröße ein Blatt um exakt 200/90 Pixel und besteht nur, wenn es
+sich um 200/90 bewegt hat. Für die Lupe kommt die eigene Ruhegröße (0,76) noch
+obendrauf – bei 2560x1440 also 158 × 0,76 × 1,6 = 192 sichtbare Pixel, und die
+Linsenmitte muss trotzdem auf 0 Pixel genau unter dem Zeiger sitzen.
+
 ## Der Schreibtisch ist absichtlich zu klein
 
 Die Dokumente liegen frei auf der Fläche, überlappen sich und lassen sich mit

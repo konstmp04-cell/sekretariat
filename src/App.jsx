@@ -23,6 +23,7 @@ import DaySummary from './components/DaySummary.jsx'
 import Zeugnis from './components/Zeugnis.jsx'
 import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
+import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { spiele, ladeTonEinstellung } from './game/audio.js'
 
 ladeTonEinstellung()
@@ -31,7 +32,11 @@ export default function App() {
   if (typeof window !== 'undefined' && window.location.hash === '#galerie') {
     return <Galerie />
   }
-  return <Spiel />
+  return (
+    <Buehne>
+      <Spiel />
+    </Buehne>
+  )
 }
 
 function Spiel() {
@@ -134,7 +139,13 @@ function Schalter({ stand, info, dispatch }) {
   // Startlage an der Fensterbreite ausgerichtet, damit auf schmalen
   // Bildschirmen nichts unter der Dienstanweisung verschwindet.
   const { startNotiz, startAkte, startAttest, startPlan, startSchein, startLupe } = useMemo(() => {
-    const breite = typeof window === 'undefined' ? 1440 : window.innerWidth
+    // Durch den Bühnenfaktor geteilt: window.innerWidth zählt sichtbare
+    // Pixel, die Startlagen werden aber im Layoutmaß gesetzt. Ohne das lägen
+    // auf einem großen Bildschirm alle Papiere weit rechts außerhalb.
+    const breite =
+      typeof window === 'undefined'
+        ? 1440
+        : window.innerWidth / skalaFuer(window.innerWidth, window.innerHeight)
     return {
       // Rechts genug Abstand, damit die Entschuldigung nicht unter der
       // Statusleiste startet.
@@ -402,8 +413,13 @@ function Schalter({ stand, info, dispatch }) {
 
           {/* Einmaliger Hinweis beim allerersten Vorgang. Danach nie wieder –
               wer es einmal gemacht hat, braucht die Erinnerung nicht. */}
+          {/* Mit eigener Unterlage, nicht als nackter Text auf dem Tisch: Die
+              Papiere liegen frei und lassen sich verschieben, also kann unter
+              dieser Zeile alles Mögliche landen – auf einem breiten
+              Bildschirm schon von Haus aus die Entschuldigung. Ein Hinweis,
+              der im Papier steht, liest sich wie ein Druckfehler. */}
           {info.tag === 1 && stand.index === 0 && !stamp && (
-            <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 text-center font-form text-[11px] uppercase tracking-[0.18em] text-paper-400/50">
+            <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-paper-400/15 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-paper-400/65">
               Dokumente und Lupe lassen sich verschieben
             </p>
           )}

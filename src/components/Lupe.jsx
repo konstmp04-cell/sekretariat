@@ -23,6 +23,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { spiele } from '../game/audio.js'
+import { zoomFaktor } from './Buehne.jsx'
 
 const DURCHMESSER = 158
 /** Ruhend, unter dem Zeiger, in der Hand. */
@@ -78,9 +79,12 @@ export default function Lupe({ start, inhalte, z = 40 }) {
       // von 0,85 auf 1 wächst.
       const flaeche = ref.current.offsetParent?.getBoundingClientRect()
       if (!flaeche) return
+      // Geteilt durch den Vergrößerungsfaktor der Bühne: Das Rechteck misst
+      // in sichtbaren Pixeln, pos liegt im Layoutmaß.
+      const f = zoomFaktor(ref.current)
       griff.current = {
-        x: e.clientX - flaeche.left - pos.x,
-        y: e.clientY - flaeche.top - pos.y,
+        x: (e.clientX - flaeche.left) / f - pos.x,
+        y: (e.clientY - flaeche.top) / f - pos.y,
       }
       ref.current.setPointerCapture(e.pointerId)
       setZieht(true)
@@ -92,15 +96,23 @@ export default function Lupe({ start, inhalte, z = 40 }) {
   const bewegen = useCallback(
     (e) => {
       if (!zieht) return
-      const flaeche = ref.current.offsetParent?.getBoundingClientRect()
+      const eltern = ref.current.offsetParent
+      const flaeche = eltern?.getBoundingClientRect()
       if (!flaeche) return
+      const f = zoomFaktor(ref.current)
       const x = Math.max(
         -DURCHMESSER * 0.4,
-        Math.min(flaeche.width - DURCHMESSER * 0.6, e.clientX - flaeche.left - griff.current.x),
+        Math.min(
+          eltern.offsetWidth - DURCHMESSER * 0.6,
+          (e.clientX - flaeche.left) / f - griff.current.x,
+        ),
       )
       const y = Math.max(
         -DURCHMESSER * 0.3,
-        Math.min(flaeche.height - DURCHMESSER * 0.5, e.clientY - flaeche.top - griff.current.y),
+        Math.min(
+          eltern.offsetHeight - DURCHMESSER * 0.5,
+          (e.clientY - flaeche.top) / f - griff.current.y,
+        ),
       )
       setPos({ x, y })
       pruefeZiel()

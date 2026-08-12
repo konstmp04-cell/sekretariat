@@ -15,6 +15,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { spiele } from '../game/audio.js'
+import { zoomFaktor } from './Buehne.jsx'
 
 // So viel vom Blatt muss auf der Fläche sichtbar bleiben – sonst ließe sich
 // ein Dokument aus dem Bild schieben und wäre nicht mehr zu greifen.
@@ -33,7 +34,11 @@ export default function Ziehbar({ start, z = 1, onVorn, children }) {
       onVorn?.()
       const el = ref.current
       const kasten = el.getBoundingClientRect()
-      griff.current = { x: e.clientX - kasten.left, y: e.clientY - kasten.top }
+      // Durch den Faktor geteilt: Das Rechteck liefert sichtbare Pixel, der
+      // Griffpunkt muss aber im Layoutmaß liegen, weil `left`/`top` darin
+      // gesetzt werden.
+      const f = zoomFaktor(el)
+      griff.current = { x: (e.clientX - kasten.left) / f, y: (e.clientY - kasten.top) / f }
       el.setPointerCapture(e.pointerId)
       setZieht(true)
       spiele('papier')
@@ -45,15 +50,19 @@ export default function Ziehbar({ start, z = 1, onVorn, children }) {
     (e) => {
       if (!zieht) return
       const el = ref.current
-      const flaeche = el.offsetParent?.getBoundingClientRect()
+      const eltern = el.offsetParent
+      const flaeche = eltern?.getBoundingClientRect()
       if (!flaeche) return
+      const f = zoomFaktor(el)
 
-      let x = e.clientX - flaeche.left - griff.current.x
-      let y = e.clientY - flaeche.top - griff.current.y
+      let x = (e.clientX - flaeche.left) / f - griff.current.x
+      let y = (e.clientY - flaeche.top) / f - griff.current.y
 
-      // Innerhalb der Schreibtischfläche halten
-      x = Math.max(REST_X - el.offsetWidth, Math.min(flaeche.width - REST_X, x))
-      y = Math.max(0, Math.min(flaeche.height - REST_Y, y))
+      // Innerhalb der Schreibtischfläche halten. Bewusst offsetWidth/-Height
+      // der Fläche statt der Maße aus dem Rechteck: Beides muss im selben
+      // Koordinatensystem liegen wie x und y.
+      x = Math.max(REST_X - el.offsetWidth, Math.min(eltern.offsetWidth - REST_X, x))
+      y = Math.max(0, Math.min(eltern.offsetHeight - REST_Y, y))
 
       setPos({ x, y })
     },
