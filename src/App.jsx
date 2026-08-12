@@ -257,6 +257,25 @@ function Schalter({ stand, info, dispatch }) {
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${shake ? 'animate-desk-shake' : ''}`}>
+      {/* --- Rückmeldung am Bildschirmrand -------------------------------- */}
+      {/* Liegt über allem, nimmt aber keine Klicks an: Sie ist eine Auskunft,
+          kein Bedienelement. Anordnungen bekommen keinen Schein – dort hat
+          das Spiel kein Urteil abzugeben, und eine Farbe wäre schon eines. */}
+      {feedback && !feedback.anweisung && (
+        <div
+          key={a.id + stamp}
+          className="animate-rand-schein pointer-events-none absolute inset-0 z-50"
+          style={{
+            // Grün etwas kräftiger als Rot angesetzt: Bei gleicher Deckung
+            // wirkt das dunkle Tannengrün gegen den fast schwarzen
+            // Schreibtisch deutlich blasser als das warme Rot.
+            boxShadow: `inset 0 0 150px 18px ${
+              feedback.richtig ? 'rgb(58 132 100 / 0.72)' : 'rgb(168 50 38 / 0.68)'
+            }`,
+          }}
+        />
+      )}
+
       {/* --- Rückwand mit Schalterfenster ---------------------------------- */}
       <div className="absolute inset-x-0 top-0 h-[32%] bg-desk-700">
         <div

@@ -110,6 +110,32 @@ body {
   }
 }
 
+/* Rückmeldung am Bildschirmrand.
+ *
+ * Wer ohne Ton spielt, hatte bisher nur die Textzeile ganz unten – und dorthin
+ * schaut niemand, solange er die Papiere ansieht. Ein Schein am Rand wird auch
+ * peripher wahrgenommen, ohne dass man den Blick hebt.
+ *
+ * Bewusst nur der Rand und nicht die Fläche: Ein grüner Schwall über den
+ * ganzen Schirm wäre in dieser gedeckten Farbwelt ein Fremdkörper und sähe
+ * nach Quiz-App aus. Schnell hell, langsam weg – so liest es sich als
+ * Aufleuchten und nicht als Blinken. */
+@keyframes rand-schein {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-rand-schein {
+  animation: rand-schein 900ms ease-out both;
+}
+
 .animate-paper-in {
   animation: paper-in 620ms cubic-bezier(0.22, 1.1, 0.36, 1) both;
 }
@@ -132,6 +158,15 @@ body {
   .animate-ink-settle,
   .animate-desk-shake {
     animation-duration: 1ms;
+  }
+
+  /* Der Rand-Schein bleibt erhalten, nur ohne den schnellen Anstieg: Er ist
+   * für manche die einzige Rückmeldung, die ankommt. Ihn auf 1 ms zu kürzen
+   * hieße, ausgerechnet denen die Auskunft zu nehmen, die sie am ehesten
+   * brauchen. */
+  .animate-rand-schein {
+    animation-duration: 1200ms;
+    animation-timing-function: linear;
   }
 }
 

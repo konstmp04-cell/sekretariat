@@ -283,6 +283,33 @@ Genau diese Messung hat zwei Fehler aufgedeckt, die beim Hören leicht
 durchgerutscht wären: Papierrascheln und Bestätigungston lagen ursprünglich
 bei 0.06 und waren gegen den Stempelschlag praktisch unhörbar.
 
+### Der Ton darf nicht der einzige Kanal sein
+
+Viele spielen ohne Lautstärke. Für sie gab es nach einer Entscheidung nur die
+Textzeile am unteren Rand – und dorthin schaut niemand, solange er die
+Papiere ansieht. Ob eine Entscheidung richtig war, ließ sich sonst erst an
+den beiden Ruf-Balken ablesen, also zu spät und zu indirekt.
+
+Deshalb leuchtet jetzt für 900 ms der Bildschirmrand auf, grün oder rot. Nur
+der Rand und nicht die Fläche: Ein Schwall über den ganzen Schirm wäre in
+dieser gedeckten Farbwelt ein Fremdkörper und sähe nach Quiz-App aus. Schnell
+hell, langsam weg – so liest es sich als Aufleuchten, nicht als Blinken.
+
+Zwei Feinheiten, die nicht offensichtlich sind:
+
+**Grün ist kräftiger angesetzt als Rot.** Bei gleicher Deckung wirkt das
+dunkle Tannengrün gegen den fast schwarzen Schreibtisch deutlich blasser als
+das warme Rot.
+
+**Anordnungen bekommen keinen Schein.** Dort hat das Spiel kein Urteil
+abzugeben, und eine Farbe wäre schon eines – aus demselben Grund bleibt dort
+auch der Bestätigungston aus.
+
+Bei `prefers-reduced-motion` wird der Schein länger und gleichmäßiger, statt
+wie die übrigen Animationen auf 1 ms gekürzt zu werden: Er ist für manche die
+einzige Rückmeldung, die ankommt. Farbe bleibt dabei nie das alleinige
+Signal – die Textzeile nennt den Grund weiterhin im Klartext.
+
 ### Galerie-Ansicht
 
 Unter `#galerie` liegen viele Porträts nebeneinander. Einzeln durchklicken
