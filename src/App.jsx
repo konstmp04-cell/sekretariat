@@ -24,7 +24,8 @@ import Zeugnis from './components/Zeugnis.jsx'
 import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
-import { spiele, ladeTonEinstellung } from './game/audio.js'
+import { lichtFuer, fortschrittImTag } from './game/licht.js'
+import { spiele, ladeTonEinstellung, raumklangStarten, raumklangStoppen } from './game/audio.js'
 
 ladeTonEinstellung()
 
@@ -167,6 +168,9 @@ function Schalter({ stand, info, dispatch }) {
 
   const a = queue[Math.min(stand.index, queue.length - 1)]
 
+  // Der Stand der Sonne, abgeleitet aus dem Stand der Arbeit.
+  const licht = lichtFuer(fortschrittImTag(stand.index, info.anzahl))
+
   // Frühere Begegnungen mit dieser Figur – daraus entsteht ihre Zeile.
   // Nur frühere Tage zählen als Vorgeschichte.
   //
@@ -215,6 +219,30 @@ function Schalter({ stand, info, dispatch }) {
   useEffect(() => {
     spiele('papier')
   }, [stand.index])
+
+  // Der Grundton des Zimmers läuft, solange die Schicht läuft – und endet
+  // mit ihr. Auf der Abrechnung und im Briefing wäre er fehl am Platz: Dort
+  // sitzt man nicht am Schalter.
+  useEffect(() => {
+    raumklangStarten()
+    return () => raumklangStoppen()
+  }, [])
+
+  // Pausenglocke.
+  //
+  // Zweimal je Schicht, an festen Dritteln. Danach wird der Flur für ein paar
+  // Sekunden laut und beruhigt sich wieder. Das ist der einzige Vorgang im
+  // ganzen Spiel, den nicht der Spieler auslöst – und genau darum geht es:
+  // Die Schule läuft weiter, während er Papiere prüft.
+  const pausen = useMemo(
+    () => [Math.round(info.anzahl / 3), Math.round((info.anzahl * 2) / 3)],
+    [info.anzahl],
+  )
+  useEffect(() => {
+    if (!pausen.includes(stand.index) || stand.index === 0) return
+    spiele('glocke')
+    spiele('flur', 1.1)
+  }, [stand.index, pausen])
 
   const entscheiden = useCallback(
     (kind, bestochen = false) => {
@@ -296,6 +324,12 @@ function Schalter({ stand, info, dispatch }) {
               'repeating-linear-gradient(180deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 44px)',
           }}
         />
+        {/* Ein Hauch der Tagesfarbe über die ganze Wand – ohne ihn leuchtet
+            der Pool unten in einer Wand, die davon nichts mitbekommt. */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: licht.wandton, transition: 'background 1600ms linear' }}
+        />
         {/* Wer heute noch wartet */}
         <div className="absolute bottom-4 left-8 flex items-end gap-3 opacity-25 blur-[2px]">
           {queue.slice(stand.index + 1, stand.index + 4).map((p) => (
@@ -336,10 +370,14 @@ function Schalter({ stand, info, dispatch }) {
             Schleier quer über die Wand. Eng gefasst und am Schalterfenster
             verankert lenkt es dagegen den Blick auf den Menschen davor. */}
         <div
-          className="pointer-events-none absolute bottom-0 left-1/2 h-44 w-[430px] -translate-x-1/2"
+          className="pointer-events-none absolute bottom-0 left-1/2 w-[430px] -translate-x-1/2"
           style={{
-            background:
-              'radial-gradient(ellipse 46% 66% at 50% 100%, rgb(232 200 138 / 0.17), transparent 72%)',
+            height: licht.hoehe,
+            background: licht.schein,
+            // Lang und linear: Der Wechsel soll zwischen zwei Vorgängen
+            // unbemerkt geschehen. Wer ihn beim Zusehen bemerkt, bemerkt eine
+            // Animation – und nicht, dass es Nachmittag geworden ist.
+            transition: 'background 1600ms linear, height 1600ms linear',
           }}
         />
       </div>

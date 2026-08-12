@@ -402,6 +402,69 @@ wie die übrigen Animationen auf 1 ms gekürzt zu werden: Er ist für manche die
 einzige Rückmeldung, die ankommt. Farbe bleibt dabei nie das alleinige
 Signal – die Textzeile nennt den Grund weiterhin im Klartext.
 
+## Der Tag vergeht
+
+Über die Schicht wandert das Licht am Schalterfenster von kaltem Morgen über
+den hellen Mittag zum tiefen, warmen Nachmittag, und der Raum sinkt dabei ab.
+Vorgang 12 von 14 fühlt sich dadurch spät an, statt es nur zu heißen; am
+letzten Tag steht Milan im Dämmerlicht.
+
+**Flackerndes Licht wäre der naheliegende Einfall gewesen – und der einzige,
+der das Spiel etwas kostet.** Die Kernhandlung ist, zwei fast identische
+Kurven zu vergleichen. Alles, was die Helligkeit ändert, WÄHREND man hinsieht,
+macht das schwerer und liest sich, als arbeite das Spiel gegen einen.
+
+Verträglich wird es durch eine Grenze: Verändert wird ausschließlich die
+Rückwand mit dem Schalterfenster. Der Schreibtisch, auf dem die Dokumente
+liegen, behält über den ganzen Tag dieselbe Beleuchtung. Das Licht spielt
+dort, wo man nichts prüfen muss.
+
+Gemessen wird der Fortschritt in Vorgängen, nicht in Minuten – wer lange über
+einem Fall grübelt, soll dafür nicht in die Dämmerung geraten.
+
+### Farbe trägt das, nicht Helligkeit
+
+Der erste Entwurf lag zwischen 0,13 und 0,20 Deckung bei ähnlichen Farbtönen.
+Im Screenshot unterschied sich die Wand zwischen Morgen und Nachmittag um drei
+von 255 Helligkeitsstufen – also um nichts. Jetzt läuft sie von kaltem
+Blaugrau (150 190 232) nach Bernstein (232 130 46). Helligkeit taugt hier
+ohnehin schlecht: Am Ende wäre es einfach dunkel, und dunkel liest sich als
+Nacht, nicht als später Nachmittag.
+
+## Der Raum klingt, auch wenn man nichts tut
+
+Bis hierher löste der Spieler jeden einzelnen Klang selbst aus. Ohne seine
+Hand war es vollkommen still – ein Raum, in dem nichts passiert, solange man
+nichts tut, ist kein Raum, sondern eine Oberfläche.
+
+Während der Schicht läuft jetzt ein Grundton: das Brummen der
+Leuchtstoffröhre (50 Hz plus erste Oberwelle – die Oberwelle unterscheidet
+eine Röhre von einem Trafo) und ein schmales Band tiefen Rauschens für das
+Gebäude. Sehr leise. Er soll auffallen, wenn er **wegfällt**, nicht wenn er da
+ist.
+
+Zweimal je Schicht läutet die Pausenglocke, und danach wird der Flur für neun
+Sekunden laut: gedämpftes Stimmengewirr durch eine geschlossene Tür, dazu
+vereinzelt Schritte. Ein langsames Wogen liegt darüber, weil eine
+Menschenmenge nie gleichförmig ist – ohne das bliebe es Rauschen und klänge
+nach Wasserhahn. Das ist der einzige Vorgang im ganzen Spiel, den nicht der
+Spieler auslöst.
+
+Gemessen, wie alles hier: Der Flur kam zunächst auf 0,46 Spitzenpegel und lag
+damit bei 71 % des Stempelschlags – kein Hintergrund mehr, sondern ein
+Vordergrund, der den wichtigsten Klang des Spiels zudeckt. Jetzt liegt er bei
+0,21, also auf Höhe des Papierraschelns.
+
+| Klang | Peak | Dauer |
+| --- | --- | --- |
+| Stempel | 0.69 | 91 ms |
+| Glocke | 0.69 | 1165 ms |
+| Summer | 0.50 | 340 ms |
+| Flur | 0.21 | 9100 ms |
+| Klick | 0.17 | 15 ms |
+| Papier | 0.17 | 126 ms |
+| Haken | 0.14 | 134 ms |
+
 ### Galerie-Ansicht
 
 Unter `#galerie` liegen viele Porträts nebeneinander. Einzeln durchklicken

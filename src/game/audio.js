@@ -211,7 +211,69 @@ function haken(ctx, ziel, t) {
   ton(ctx, ziel, t + 0.06, { form: 'sine', freq: 1320, dauer: 0.11, gain: 0.1 })
 }
 
-export const KLAENGE = { stempel, papier, summer, glocke, klick, haken }
+/**
+ * Der Flur hinter der Tür, wenn die Pause beginnt.
+ *
+ * Kein Einzelklang, sondern ein An- und Abschwellen über mehrere Sekunden:
+ * gedämpftes Stimmengewirr durch eine geschlossene Tür, dazu vereinzelt
+ * Schritte. Bewusst dumpf gefiltert – man hört, dass es nebenan ist.
+ */
+function flur(ctx, ziel, t) {
+  const dauer = 9
+
+  const quelle = ctx.createBufferSource()
+  quelle.buffer = rauschPuffer(ctx)
+  quelle.loop = true
+
+  // Zwei Filter hintereinander: Der Tiefpass nimmt die Schärfe (die Tür), der
+  // schmale Bandpass legt den Schwerpunkt in den Bereich, in dem Stimmen
+  // sitzen. Rauschen allein klingt nach Wasserhahn, nicht nach Menschen.
+  const tuer = ctx.createBiquadFilter()
+  tuer.type = 'lowpass'
+  tuer.frequency.value = 620
+  const stimmen = ctx.createBiquadFilter()
+  stimmen.type = 'bandpass'
+  stimmen.frequency.value = 380
+  stimmen.Q.value = 0.8
+
+  // Langsames Wogen: Ohne diese Schwankung bleibt es ein gleichförmiges
+  // Rauschen, und eine Menschenmenge ist nie gleichförmig.
+  const wogen = ctx.createOscillator()
+  wogen.type = 'sine'
+  wogen.frequency.value = 0.21
+  const wogenTiefe = ctx.createGain()
+  wogenTiefe.gain.value = 0.35
+
+  // Gemessen: Bei einem Scheitel von 0.9 kam der Flur auf 0.46 Spitzenpegel
+  // und lag damit bei 71 % des Stempelschlags – kein Hintergrund mehr,
+  // sondern ein Vordergrund, der den wichtigsten Klang des Spiels zudeckt.
+  // Auf Höhe des Papierraschelns ist er da, ohne sich vorzudrängen.
+  const huelle = ctx.createGain()
+  huelle.gain.setValueAtTime(0, t)
+  huelle.gain.linearRampToValueAtTime(0.28, t + 1.6)
+  huelle.gain.setValueAtTime(0.28, t + dauer - 3.5)
+  huelle.gain.linearRampToValueAtTime(0, t + dauer)
+
+  wogen.connect(wogenTiefe).connect(huelle.gain)
+  quelle.connect(tuer).connect(stimmen).connect(huelle).connect(ziel)
+  quelle.start(t)
+  quelle.stop(t + dauer + 0.1)
+  wogen.start(t)
+  wogen.stop(t + dauer + 0.1)
+
+  // Ein paar Schritte auf dem Flur, unregelmäßig verteilt.
+  for (let i = 0; i < 7; i++) {
+    const wann = t + zufall(1.2, dauer - 2)
+    rauschen(ctx, ziel, wann, {
+      dauer: 0.05,
+      typ: 'lowpass',
+      freq: zufall(240, 420),
+      gain: zufall(0.03, 0.07),
+    })
+  }
+}
+
+export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur }
 
 // --- Wiedergabe ---------------------------------------------------------
 
@@ -284,6 +346,85 @@ export function spiele(name, verzoegerung = 0) {
   KLAENGE[name](c, bus, t)
 }
 
+// --- Raumklang ----------------------------------------------------------
+
+/**
+ * Der Grundton des Zimmers, solange die Schicht läuft.
+ *
+ * Bis hierher löste der Spieler jeden einzelnen Klang selbst aus: Ohne seine
+ * Hand war es vollkommen still. Ein Raum, in dem nichts passiert, solange man
+ * nichts tut, ist kein Raum, sondern eine Oberfläche.
+ *
+ * Zwei Schichten, beide sehr leise: das Brummen der Leuchtstoffröhre (ein
+ * tiefer Ton mit seiner ersten Oberwelle) und ein schmales Band tiefen
+ * Rauschens für das Gebäude – Lüftung, Flur, Entferntes.
+ *
+ * Der Pegel liegt bewusst weit unter allem anderen. Er soll auffallen, wenn
+ * er WEGFÄLLT, nicht wenn er da ist.
+ */
+let raum = null
+
+export function raumklangStarten() {
+  if (stumm || raum) return
+  const c = bereit()
+  if (!c) return
+  if (c.state === 'suspended') c.resume()
+
+  const aus = c.createGain()
+  aus.gain.setValueAtTime(0, c.currentTime)
+  aus.gain.linearRampToValueAtTime(1, c.currentTime + 2.5)
+  aus.connect(master)
+
+  const teile = []
+
+  // Leuchtstoffröhre: Netzbrummen plus erste Oberwelle. Die Oberwelle ist
+  // das, was eine Röhre von einem Trafo unterscheidet.
+  for (const [freq, gain] of [[50, 0.014], [100, 0.008]]) {
+    const osz = c.createOscillator()
+    osz.type = 'sine'
+    osz.frequency.value = freq
+    const g = c.createGain()
+    g.gain.value = gain
+    osz.connect(g).connect(aus)
+    osz.start()
+    teile.push(osz)
+  }
+
+  // Das Gebäude.
+  const quelle = c.createBufferSource()
+  quelle.buffer = rauschPuffer(c)
+  quelle.loop = true
+  const tief = c.createBiquadFilter()
+  tief.type = 'lowpass'
+  tief.frequency.value = 300
+  const g = c.createGain()
+  g.gain.value = 0.02
+  quelle.connect(tief).connect(g).connect(aus)
+  quelle.start()
+  teile.push(quelle)
+
+  raum = { aus, teile }
+}
+
+export function raumklangStoppen() {
+  if (!raum) return
+  const c = ctx
+  const { aus, teile } = raum
+  raum = null
+  if (!c) return
+  // Ausblenden statt abwürgen: Ein hart abgeschnittener Dauerton knackt.
+  aus.gain.cancelScheduledValues(c.currentTime)
+  aus.gain.setValueAtTime(aus.gain.value, c.currentTime)
+  aus.gain.linearRampToValueAtTime(0, c.currentTime + 0.6)
+  for (const t of teile) {
+    try {
+      t.stop(c.currentTime + 0.7)
+    } catch {
+      // schon gestoppt
+    }
+  }
+}
+
 const SCHLUESSEL = 'sekretariat.ton'
 
 export function istStumm() {
@@ -292,6 +433,10 @@ export function istStumm() {
 
 export function setzeStumm(wert) {
   stumm = wert
+  // Der Grundton ist ein Dauerklang und würde sonst weiterlaufen, obwohl
+  // gerade jemand ausdrücklich Ruhe verlangt hat.
+  if (wert) raumklangStoppen()
+  else raumklangStarten()
   try {
     localStorage.setItem(SCHLUESSEL, wert ? 'aus' : 'an')
   } catch {
