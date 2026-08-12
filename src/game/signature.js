@@ -40,14 +40,77 @@ function splineThrough(points) {
 const r = (n) => Math.round(n * 100) / 100
 
 /**
+ * Die dreiste Fälschung: nicht daneben, sondern gar nicht erst versucht.
+ *
+ * Fällt bewusst aus dem sonstigen Verfahren heraus. Alle übrigen Fälschungen
+ * entstehen aus DEMSELBEN Seed wie das Original, damit Schwung und Länge
+ * stimmen und nur die Schlaufen danebensitzen – das ist die eigentliche
+ * Prüfung. Hier gilt das Gegenteil: wenige riesige Schlaufen, viel zu wenige
+ * Buchstaben, ein Strich, der oben aus dem Feld läuft. Jemand hat sich
+ * dreißig Sekunden Zeit genommen.
+ *
+ * Sie wird ausschließlich auf ohnehin gefälschte Vorgänge gesetzt. Auf einer
+ * gültigen Entschuldigung wäre sie keine Pointe, sondern eine Falle.
+ */
+function kritzelPfad(seed, width, height) {
+  const { range, int, chance, jitter } = rngHelpers(makeRng(seed ^ 0x5bf03635))
+  const base = height * 0.6
+
+  // Eine überhohe Anfangsschlaufe: Der erste Buchstabe war noch ambitioniert.
+  const pts = [
+    [width * 0.04, base + range(height * 0.05, height * 0.2)],
+    [width * 0.09, base - range(height * 0.7, height * 0.95)],
+    [width * 0.15, base + range(0, height * 0.15)],
+  ]
+
+  // Danach nur noch Zacken – und zwar ungleichmäßige. Gleich hohe Spitzen in
+  // gleichen Abständen lesen sich als Sinuskurve und damit als etwas, das
+  // jemand SORGFÄLTIG gezeichnet hat. Der Witz liegt aber genau darin, dass
+  // sich niemand Mühe gegeben hat: Jede Spitze bekommt eine eigene Höhe, die
+  // Abstände schwanken, und die Grundlinie sackt nach rechts weg.
+  const zacken = int(3, 5)
+  let x = width * 0.18
+  for (let i = 0; i < zacken; i++) {
+    const breite = ((width * 0.68) / zacken) * range(0.7, 1.35)
+    const sacken = (height * 0.1 * i) / zacken
+    pts.push([x + breite * 0.45 + jitter(breite * 0.15), base - range(height * 0.2, height * 0.8) + sacken])
+    pts.push([x + breite, base + range(0, height * 0.28) + sacken])
+    x += breite
+  }
+
+  // Abschluss: ein Strich, der einfach nach rechts wegläuft und dabei
+  // langsam die Lust verliert.
+  pts.push([Math.min(width * 0.97, x + width * 0.12), base + range(height * 0.02, height * 0.16)])
+
+  const extras = []
+  // Ein durchgestrichener Ansatz – der erste Versuch war noch schlechter.
+  if (chance(0.55)) {
+    const y = base - height * 0.1
+    extras.push(`M ${r(width * 0.1)} ${r(y)} L ${r(width * 0.4)} ${r(y - height * 0.08)}`)
+  }
+  // Ein einzelner Punkt irgendwo – als hätte jemand ein i vergessen und es
+  // nachträglich an die falsche Stelle gesetzt.
+  if (chance(0.4)) {
+    const px = range(width * 0.3, width * 0.75)
+    extras.push(`M ${r(px)} ${r(base - height * 0.62)} l 1.5 1.5`)
+  }
+  return { main: splineThrough(pts), extras, width, height }
+}
+
+/**
  * @param {number} seed         Identität der Unterschrift
  * @param {object} opts
  * @param {number} opts.width   Zeichenbreite
  * @param {number} opts.height  Zeichenhöhe
  * @param {number} opts.forgery 0 = echt. 0.2–1 = zunehmend schlampige Fälschung.
+ * @param {boolean} opts.dreist Gar nicht erst versucht – siehe kritzelPfad.
  * @returns {{ main: string, extras: string[], width: number, height: number }}
  */
-export function signaturePath(seed, { width = 260, height = 80, forgery = 0 } = {}) {
+export function signaturePath(seed, { width = 260, height = 80, forgery = 0, dreist = false } = {}) {
+  // Nur wenn ohnehin gefälscht: Eine echte Unterschrift darf unter keinen
+  // Umständen als Krakelei erscheinen.
+  if (dreist && forgery > 0) return kritzelPfad(seed, width, height)
+
   const { range, int, pick, chance, jitter } = rngHelpers(makeRng(seed))
 
   const base = height * 0.62

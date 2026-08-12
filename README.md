@@ -119,6 +119,55 @@ einzigen Zuwendung belässt, findet im Zeugnis eine Zeile: *„Ein Vorgang blieb
 aktenkundig."* Kein Punktabzug, keine Strafe – nur der Vermerk, dass es nicht
 vergessen wurde.
 
+## Kuriositäten
+
+Zwölf Tage Formularprüfung sind lang. Ohne Ausreißer wird aus Konzentration
+Abstumpfung. An fünf Tagen – 3, 5, 7, 9 und 12 – steht deshalb ein Vorgang,
+bei dem man kurz auflacht.
+
+**Absurde Gründe** stehen auf einer Entschuldigung, an der sonst nichts
+auszusetzen ist. „Wurde im Supermarkt eingeschlossen", „Familiäre
+Verpflichtungen (Schildkröte)". Darin liegt der Witz und gleichzeitig eine
+Prüfung: Im Regelwerk steht kein Wort davon, dass ein Grund glaubwürdig sein
+muss. Wer so etwas abweist, weist einen Unschuldigen ab – nach Bauchgefühl
+statt nach Dienstanweisung. Dieselbe Lektion wie bei den Anordnungen, nur von
+der anderen Seite.
+
+**Dreiste Fälschungen** sitzen ausschließlich auf Vorgängen, die ohnehin
+gefälscht sind. Sie machen einen schweren Fall zum geschenkten – ein
+Durchatmen zwischen zwei kniffligen. Unter der Linie steht dann, was jemand
+ohne nachzudenken hingeschrieben hat: „Mutti". „Mama (echt)". Gelegentlich mit
+Nachtrag: *P.S.: Bitte nicht zu Hause anrufen.*
+
+Auf einer gültigen Entschuldigung dürfen sie unter keinen Umständen
+erscheinen. Ein Gag, der genaues Hinsehen bestraft, wäre das Gegenteil von
+dem, was das Spiel will – `signaturePath` ignoriert das `dreist`-Kennzeichen
+deshalb, solange `forgery === 0` ist, und ein Test prüft für mehrere Seeds,
+dass die echte Kurve bitgenau dieselbe bleibt.
+
+### Warum die Krakelei ungleichmäßig sein muss
+
+Der erste Entwurf zeichnete drei bis vier gleich hohe Zacken in gleichen
+Abständen. Das Ergebnis las sich als Sinuskurve – also als etwas, das jemand
+*sorgfältig* gezeichnet hat. Der Witz liegt aber genau darin, dass sich
+niemand Mühe gegeben hat. Jetzt bekommt jede Spitze eine eigene Höhe, die
+Abstände schwanken, die Grundlinie sackt nach rechts weg, und der letzte
+Strich verliert die Lust.
+
+### Auch hier: gesetzt, nicht gewürfelt
+
+Der erste Entwurf warf an jedem Tag eine Münze (55 %). Heraus kamen fünf
+Kuriositäten, alle zwischen Tag 6 und 10, und eine einzige dreiste Fälschung
+im ganzen Spiel – bei festen Seeds für jeden Spieler dieselbe Klumpung.
+Derselbe Fehler wie bei der Verstoßquote, nur an anderer Stelle.
+
+Die Tage stehen jetzt fest. Frei bleiben Tag 1 und 2 (wer die Regeln noch
+lernt, soll nicht am Sonderfall lernen, was normal ist) sowie 4, 8 und 10
+(dort ergeht eine Anordnung, die ohne Konkurrenz wirken soll). Verschont
+bleiben außerdem der erste Vorgang des Tages, alle Stammgäste, der Betroffene
+der Anordnung und der Fall, an dem die heute eingeführte Regel vorgeführt
+wird.
+
 ## Die Lupe
 
 Ab Tag 11 weicht eine Fälschung nur noch in einer einzigen Schlaufe vom

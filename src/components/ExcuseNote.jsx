@@ -62,8 +62,28 @@ export default function ExcuseNote({ applicant: a, stamped }) {
         </span>
       </div>
       <div className="-mt-1 border-t border-ink-500/30 pt-1" data-lupe="notiz-sig">
-        <Signature seed={a.elternSeed} forgery={a.forgery} width={220} height={64} />
+        <Signature seed={a.elternSeed} forgery={a.forgery} dreist={a.dreist} width={220} height={64} />
       </div>
+
+      {/* Der eigentliche Treffer bei einer dreisten Fälschung ist nicht die
+          Krakelei, sondern das, was jemand daruntergeschrieben hat, ohne
+          nachzudenken. Steht deshalb UNTER der Linie, wo bei einem Formular
+          der Name in Druckbuchstaben stünde. */}
+      {a.unterschriftLabel && (
+        <div className="-mt-1">
+          <Handwriting seed={a.seed + 11} size={13} color="#243a5e" messy={0.9}>
+            {a.unterschriftLabel}
+          </Handwriting>
+        </div>
+      )}
+
+      {a.nachtrag && (
+        <div className="mt-3 -rotate-1">
+          <Handwriting seed={a.seed + 12} size={13} color="#243a5e" messy={0.9}>
+            {a.nachtrag}
+          </Handwriting>
+        </div>
+      )}
 
       {stamped && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">

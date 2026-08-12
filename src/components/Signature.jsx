@@ -12,6 +12,7 @@ import { signaturePath } from '../game/signature.js'
 export default function Signature({
   seed,
   forgery = 0,
+  dreist = false,
   width = 240,
   height = 74,
   color = '#1b2a4a',
@@ -19,8 +20,8 @@ export default function Signature({
   animate = false,
 }) {
   const sig = useMemo(
-    () => signaturePath(seed, { width, height, forgery }),
-    [seed, forgery, width, height],
+    () => signaturePath(seed, { width, height, forgery, dreist }),
+    [seed, forgery, dreist, width, height],
   )
   const uid = `sig-${seed}-${Math.round(forgery * 100)}`
 

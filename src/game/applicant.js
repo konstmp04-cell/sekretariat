@@ -13,6 +13,7 @@ import { makeFace, abweichendesFoto, fotoAbweichungFuerTag } from './face.js'
 import { forgeryStrengthForDay } from './signature.js'
 import { auftritteAmTag } from './figuren.js'
 import { anweisungFuerTag, passendMachen } from './anweisungen.js'
+import { kuriositaetAmTag, kuriosumAnwenden, KURIOSUM } from './kuriositaeten.js'
 
 // Nach Geschlecht getrennt, damit die Entschuldigung „meine Tochter Lena"
 // bzw. „mein Sohn Jonas" schreiben kann. Vorher wurde Sohn/Tochter daraus
@@ -372,6 +373,55 @@ export function buildQueue(day, laenge = 8) {
       const stelle = pick(kandidaten)
       passendMachen(anw, schlange[stelle], !!anw.klasse && hatKlausur(day, anw.klasse))
     }
+  }
+
+  // --- Kuriosität des Tages ---------------------------------------------
+  //
+  // Höchstens eine, und an gut der Hälfte der Tage gar keine. Drei Vorgänge
+  // bleiben grundsätzlich verschont, weil an ihnen etwas hängt:
+  // Stammgäste (ihre Auftritte stehen im Drehbuch), der Betroffene der
+  // Anordnung (dort soll nichts ablenken) und der erste Vorgang des Tages
+  // (er setzt den Ton).
+  const kur = kuriositaetAmTag(day)
+  if (kur) {
+    // Fälle, an denen heute etwas hängt, bleiben unangetastet: der erste
+    // Vorgang (er setzt den Ton), Stammgäste (ihre Auftritte stehen im
+    // Drehbuch), der Betroffene der Anordnung und der Fall, an dem die heute
+    // eingeführte Regel vorgeführt wird. Ausgerechnet dort abzulenken hieße,
+    // den wichtigsten Moment des Tages zu überdecken.
+    const heuteNeu = new Set(neueRegeln(day).map((r) => r.id))
+    const frei = (a, i) =>
+      i > 0 &&
+      !a.figur &&
+      !heuteNeu.has(a.verstoss) &&
+      !(anw && a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))
+
+    // Die dreiste Fälschung sitzt nur auf ohnehin gefälschten Vorgängen, der
+    // absurde Grund nur auf einwandfreien: So macht die eine einen schweren
+    // Fall zum geschenkten, und die andere prüft, ob nach Dienstanweisung
+    // entschieden wird oder nach Bauchgefühl. Gibt der Tag die vorgesehene
+    // Sorte nicht her, kommt die andere zum Zug – lieber eine andere
+    // Kuriosität als gar keine.
+    const stellen = (art) =>
+      schlange
+        .map((a, i) =>
+          frei(a, i) &&
+          (art === KURIOSUM.DREIST
+            ? a.verstoss === VERSTOSS.FAELSCHUNG
+            : a.verstoss === VERSTOSS.KEINER)
+            ? i
+            : -1,
+        )
+        .filter((i) => i >= 0)
+
+    const ersatz = kur.art === KURIOSUM.DREIST ? KURIOSUM.GRUND : KURIOSUM.DREIST
+    let art = kur.art
+    let kandidaten = stellen(art)
+    if (!kandidaten.length) {
+      art = ersatz
+      kandidaten = stellen(art)
+    }
+    if (kandidaten.length) kuriosumAnwenden({ ...kur, art }, schlange[pick(kandidaten)])
   }
 
   return schlange
