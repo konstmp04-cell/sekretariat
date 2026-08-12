@@ -93,6 +93,31 @@ function reaktionen(stand) {
     })
   }
 
+  // Anordnungen der Schulleitung.
+  //
+  // Beides muss auftauchen, sonst wäre die Zeitung parteiisch: Wer sich
+  // widersetzt, liest, dass es bemerkt wurde – wer ausführt, liest, was er
+  // angerichtet hat. Formuliert ist beides als Beobachtung von außen, ohne
+  // Lob und ohne Vorwurf. Die Zeitung berichtet, sie urteilt nicht.
+  const anw = stand.anweisungen ?? { befolgt: 0, verweigert: 0 }
+  if (anw.verweigert >= 2) {
+    r.push({
+      titel: 'Anordnungen der Schulleitung laufen ins Leere',
+      zeile: 'Im Sekretariat werde „nach Aktenlage" entschieden.',
+      brisant: true,
+    })
+  } else if (anw.verweigert >= 1) {
+    r.push({
+      titel: 'Schulleitung mahnt Umsetzung ihrer Weisungen an',
+      zeile: 'Worum es konkret geht, will niemand sagen.',
+    })
+  } else if (anw.befolgt >= 2) {
+    r.push({
+      titel: 'Ganze Klassen von Entschuldigungen ausgeschlossen',
+      zeile: 'Betroffene berichten, ihre Papiere seien vollständig gewesen.',
+    })
+  }
+
   return r
 }
 

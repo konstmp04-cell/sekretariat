@@ -61,6 +61,49 @@ Wichtiger aber: Sie ist der Ort, an dem die Schule auf **dich** reagiert. Das
 Rektorat sagt dir nie ins Gesicht, dass es etwas mitbekommen hat. Stattdessen
 liest du eine Zeile, die zu deutlich klingt, um Zufall zu sein.
 
+## Anordnungen des Rektorats
+
+An den Tagen 4, 8 und 10 kam bisher keine neue Regel dazu – das letzte
+Drittel wurde länger, aber nicht interessanter. Dort steht jetzt etwas
+anderes: eine Anordnung, die **neben** dem Regelwerk gilt und jemanden
+trifft, dessen Papiere in Ordnung sind.
+
+| Tag | Anordnung | Trifft |
+| --- | --- | --- |
+| 4 | 7a nur noch mit Attest | Emil Sander, erster Auftritt |
+| 8 | Atteste einer Praxis gelten nicht mehr | irgendwen |
+| 10 | 10a wird gar nicht mehr angenommen | Nora Weiss |
+
+Bis dahin hatte jeder Fall eine richtige Antwort, und der Spieler suchte sie
+bloß. Eine Anordnung hat keine. Wer sie befolgt, weist einen Unschuldigen ab;
+wer sie missachtet, stellt sich gegen das Rektorat.
+
+Drei Bedingungen, ohne die das nicht funktioniert – und die alle drei
+maschinell geprüft werden:
+
+**Anweisungsfälle zählen nicht in die Trefferquote.** `pruefeEntscheidung`
+gibt für sie `richtig: null` zurück, nicht `false`. Andernfalls stünde am
+Ende im Zeugnis, der Spieler habe sich geirrt, weil er einen Unschuldigen
+nicht abgewiesen hat – und das Spiel behauptete damit, es habe doch eine
+richtige Antwort gegeben. Im Zeugnis erscheinen sie als eigener Abschnitt
+ohne Note und ohne Farbe.
+
+**Der Betroffene hat einwandfreie Papiere.** Läge zusätzlich ein Verstoß vor,
+wäre der Fall ohnehin abzulehnen und die Anordnung bliebe folgenlos.
+`buildQueue` stellt deshalb sicher, dass an jedem Anordnungstag mindestens
+ein passender, makelloser Fall vorkommt – notfalls wird einer passend
+gemacht, wobei nur verändert wird, was die Anordnung selbst prüft.
+
+**Keine Seite ist rechnerisch günstiger.** Befolgen bringt beim Rektorat
+(+4) genau so viel, wie es bei der Schülerschaft kostet (−6), und umgekehrt.
+Der erste Entwurf lag bei +4/−8 gegen −8/+6 – da war Verweigern zwei Punkte
+billiger, und aus der Zumutung wäre eine neunte Regel mit Rechenweg
+geworden.
+
+Die mittlere Anordnung trifft bewusst niemanden, den man kennt, sondern
+jeden, der zufällig bei der falschen Ärztin war. So wächst sich eine
+Maßnahme aus: erst ein Name, dann ein Merkmal.
+
 ## Wenn Geld im Spiel war
 
 Dreistufig, und zwar bewusst: Ein sofortiger Rauswurf wäre billig – man lädt
@@ -278,13 +321,34 @@ auffällige Merkmale, bis Tag 10 eines, danach nur noch ein feines.
 Damit prüft das Spiel erstmals eine andere Wahrnehmung als „zwei Textfelder
 vergleichen" – und die aufwendig gebauten Porträts bekommen eine Aufgabe.
 
-### Fehlerquote wird gesteuert, nicht gewürfelt
+### Fehlerquote wird gesetzt, nicht gewürfelt
 
 `buildQueue()` legt vorab fest, wie viele Verstöße ein Tag enthält. Bei rein
 zufälliger Verteilung gäbe es Tage ganz ohne Fehler (fühlt sich leer an) und
 Tage voller Fälschungen (fühlt sich unfair an). Die Quote steigt mit dem Tag,
 bleibt aber unter 45 % – darüber kippt das Spiel von „prüfen" zu
 „grundsätzlich misstrauen".
+
+Lange stand das nur so da. Tatsächlich entschied ein Münzwurf **je Vorgang**,
+ob ein Verstoß eingebaut wird. Im Mittel stimmte die Quote damit, im
+Einzelfall überhaupt nicht:
+
+| Tag | vorgesehen | tatsächlich |
+| --- | --- | --- |
+| 7 | 5,1 | 8 |
+| 8 | 5,9 | 9 |
+| 12 | 6,3 | **11 von 14 – 79 %** |
+
+Und weil sämtliche Seeds fest sind, war das kein Pech, das sich beim nächsten
+Anlauf ausgleicht: **jeder** Spieler bekam denselben Tag 12. Genau der Tag,
+an dem das Spiel enden soll, war der, an dem es von „prüfen" zu
+„grundsätzlich misstrauen" kippte.
+
+Gezogen wird jetzt eine Anzahl statt einer Folge von Münzwürfen, abgerundet
+statt gerundet (sonst käme an Tag 8 mit 6 von 13 wieder eine Quote von 46 %
+heraus). Stammgäste zählen in die Quote hinein, statt obendrauf zu kommen,
+und die Zusicherung für neu eingeführte Regeln widmet einen bestehenden
+Verstoß um, statt einen weiteren anzulegen.
 
 ## Steuerung
 
@@ -301,9 +365,11 @@ ergäbe bei rund 120 Vorgängen über zwölf Tage aber Fleißarbeit statt Haptik
 
 In dieser Reihenfolge – jeder Punkt baut auf dem vorherigen auf:
 
-1. Regeln für die Tage 4, 8, 10 und 12 – dort kommt bislang nichts Neues dazu
+1. Ein Finale für Tag 12 – der letzte Tag soll sich als letzter anfühlen und
+   nicht als vierzehnter Vorgang wie jeder andere
 2. Widerspruchs-Mechanik: zwei widersprüchliche Felder anklicken und den
-   Schüler damit konfrontieren
+   Schüler damit konfrontieren. Bisher gibt es genau zwei Verben, links
+   stempeln und rechts stempeln
 
 ## Acht Regeln, drei Arten zu prüfen
 

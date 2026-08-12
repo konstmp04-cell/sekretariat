@@ -49,7 +49,11 @@ export function neuerStand() {
       erwischt: 0,
       zuUnrecht: 0,
     },
-    tagBilanz: { richtig: 0, falsch: 0 },
+    // Anweisungsfälle stehen bewusst außerhalb von `gesamt`: Sie sind keine
+    // Leistung, die sich in einer Quote ausdrücken ließe, sondern eine
+    // Haltung. Im Zeugnis erscheinen sie als eigene Zeile ohne Note.
+    anweisungen: { befolgt: 0, verweigert: 0 },
+    tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
     index: 0,
     ende: null,
     // Was bei wiederkehrenden Figuren bisher entschieden wurde. Nur daraus
@@ -105,19 +109,61 @@ export function reduce(stand, aktion) {
       return { ...neuerStand(), phase: PHASE.BRIEFING }
 
     case 'FORTSETZEN':
-      return { ...aktion.stand, phase: PHASE.BRIEFING, index: 0, tagBilanz: { richtig: 0, falsch: 0 } }
+      return {
+        ...aktion.stand,
+        phase: PHASE.BRIEFING,
+        index: 0,
+        tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
+      }
 
     case 'SCHICHT_STARTEN':
       return {
         ...stand,
         phase: PHASE.SCHICHT,
         index: 0,
-        tagBilanz: { richtig: 0, falsch: 0 },
+        tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
         rufBeiTagesbeginn: { ...stand.ruf },
       }
 
     case 'ENTSCHEIDEN': {
-      const { richtig, kind, hatteVerstoss, figurId, bestochen } = aktion
+      const { richtig, kind, hatteVerstoss, figurId, bestochen, anweisung } = aktion
+
+      // Anweisungsfälle laufen an der gesamten Trefferrechnung vorbei.
+      //
+      // Die Rufkosten sind gespiegelt, nicht bloß gegenläufig: Befolgen
+      // bringt beim Rektorat genau so viel, wie es bei der Schülerschaft
+      // kostet – und umgekehrt. Beide Wege summieren sich auf denselben Wert.
+      //
+      // Das ist nicht Ziererei, sondern die Bedingung dafür, dass es eine
+      // Entscheidung bleibt: Wäre eine Seite unterm Strich günstiger, wäre
+      // die Anweisung keine Zumutung, sondern nur eine neunte Regel mit
+      // einem Rechenweg. Der frühere Entwurf (+4/−8 gegen −8/+6) war genau
+      // das – Verweigern kostete zwei Punkte weniger.
+      if (anweisung) {
+        const befolgt = kind === 'deny'
+        return {
+          ...stand,
+          ruf: {
+            rektor: klemm(stand.ruf.rektor + (befolgt ? 4 : -6)),
+            schueler: klemm(stand.ruf.schueler + (befolgt ? -6 : 4)),
+          },
+          tagBilanz: { ...stand.tagBilanz, anweisung: befolgt ? 'befolgt' : 'verweigert' },
+          anweisungen: {
+            befolgt: stand.anweisungen.befolgt + (befolgt ? 1 : 0),
+            verweigert: stand.anweisungen.verweigert + (befolgt ? 0 : 1),
+          },
+          begegnungen: figurId
+            ? {
+                ...stand.begegnungen,
+                [figurId]: [
+                  ...(stand.begegnungen[figurId] ?? []),
+                  { tag: stand.tag, entscheidung: kind, anweisung: true },
+                ],
+              }
+            : stand.begegnungen,
+        }
+      }
+
       return {
         ...stand,
         ruf: {
@@ -132,6 +178,7 @@ export function reduce(stand, aktion) {
           schueler: klemm(stand.ruf.schueler + (kind === 'ok' ? 3 : -4) + (bestochen ? 7 : 0)),
         },
         tagBilanz: {
+          ...stand.tagBilanz,
           richtig: stand.tagBilanz.richtig + (richtig ? 1 : 0),
           falsch: stand.tagBilanz.falsch + (richtig ? 0 : 1),
         },
@@ -198,6 +245,7 @@ export function speichern(stand) {
         tag: stand.tag,
         ruf: stand.ruf,
         gesamt: stand.gesamt,
+        anweisungen: stand.anweisungen,
         begegnungen: stand.begegnungen,
         bestechungen: stand.bestechungen,
       }),
@@ -219,6 +267,10 @@ export function laden() {
       ruf: { rektor: klemm(d.ruf?.rektor ?? 60), schueler: klemm(d.ruf?.schueler ?? 55) },
       begegnungen: d.begegnungen ?? {},
       bestechungen: d.bestechungen ?? 0,
+      anweisungen: {
+        befolgt: d.anweisungen?.befolgt ?? 0,
+        verweigert: d.anweisungen?.verweigert ?? 0,
+      },
       gesamt: {
         richtig: d.gesamt?.richtig ?? 0,
         falsch: d.gesamt?.falsch ?? 0,

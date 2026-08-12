@@ -157,7 +157,17 @@ function Schalter({ stand, info, dispatch }) {
   const a = queue[Math.min(stand.index, queue.length - 1)]
 
   // Frühere Begegnungen mit dieser Figur – daraus entsteht ihre Zeile.
-  const vorgeschichte = a.figur ? (stand.begegnungen[a.figur.id] ?? []) : []
+  // Nur frühere Tage zählen als Vorgeschichte.
+  //
+  // Ohne den Filter trug ein Stammgast sein „Schon einmal hier gewesen"
+  // ausgerechnet beim ERSTEN Auftritt: Der Stempel schreibt die Begegnung
+  // sofort in den Spielstand, und weil der Schüler während der Rückmeldung
+  // noch am Schalter steht, las er sich unmittelbar danach als Wiederkehrer.
+  // Denselben Weg nimmt der Dialog – sonst wechselte mitten im Vorgang die
+  // Zeile, weil die Figur sich plötzlich auf sich selbst bezieht.
+  const vorgeschichte = a.figur
+    ? (stand.begegnungen[a.figur.id] ?? []).filter((b) => b.tag < info.tag)
+    : []
   const gesagt = a.figur ? zeileFuer(a.auftritt, vorgeschichte) : a.spruch
 
   // Was die Lupe zeigt, wird neu gezeichnet statt hochskaliert – deshalb
@@ -198,17 +208,23 @@ function Schalter({ stand, info, dispatch }) {
   const entscheiden = useCallback(
     (kind, bestochen = false) => {
       if (stamp) return
-      const { richtig, verstoesse } = pruefeEntscheidung(a, info.tag, kind)
+      const { richtig, verstoesse, anweisung, befolgt } = pruefeEntscheidung(a, info.tag, kind)
 
       setStamp(kind)
-      setFeedback({ richtig, verstoesse })
+      setFeedback({ richtig, verstoesse, anweisung, befolgt })
       spiele('stempel')
       // Die Rückmeldung kommt bewusst NACH dem Schlag, nicht gleichzeitig:
       // erst stempelt man, dann merkt man, was man angerichtet hat.
-      spiele(richtig ? 'haken' : 'summer', 0.3)
-      if (!richtig) {
-        setShake(true)
-        setTimeout(() => setShake(false), 300)
+      //
+      // Bei einem Anweisungsfall bleibt es beim Schlag. Weder Haken noch
+      // Summer: Das Spiel hat hier kein Urteil abzugeben, und ein Klang, der
+      // eines andeutet, wäre schon eines.
+      if (!anweisung) {
+        spiele(richtig ? 'haken' : 'summer', 0.3)
+        if (!richtig) {
+          setShake(true)
+          setTimeout(() => setShake(false), 300)
+        }
       }
 
       dispatch({
@@ -218,6 +234,7 @@ function Schalter({ stand, info, dispatch }) {
         hatteVerstoss: verstoesse.length > 0,
         figurId: a.figur?.id ?? null,
         bestochen,
+        anweisung,
       })
 
       timer.current = setTimeout(() => {
@@ -402,16 +419,35 @@ function Schalter({ stand, info, dispatch }) {
         {feedback && (
           <div
             className={`animate-ink-settle rounded-sm border px-4 py-2 text-center font-form text-[11px] ${
-              feedback.richtig
-                ? 'border-stamp-ok/60 bg-desk-900/90 text-stamp-ok'
-                : 'border-stamp-deny/60 bg-desk-900/90 text-stamp-deny'
+              // Anweisungsfälle bekommen bewusst weder Grün noch Rot, sondern
+              // das Messing der Amtsfarbe: Das Spiel stellt fest, was
+              // geschehen ist, und beurteilt es nicht.
+              feedback.anweisung
+                ? 'border-brass/60 bg-desk-900/90 text-brass'
+                : feedback.richtig
+                  ? 'border-stamp-ok/60 bg-desk-900/90 text-stamp-ok'
+                  : 'border-stamp-deny/60 bg-desk-900/90 text-stamp-deny'
             }`}
           >
-            {feedback.richtig ? 'Korrekt bearbeitet' : 'Verweis vom Rektorat'}
-            {feedback.verstoesse.length > 0 && (
+            {feedback.anweisung
+              ? feedback.befolgt
+                ? 'Anordnung befolgt'
+                : 'Anordnung missachtet'
+              : feedback.richtig
+                ? 'Korrekt bearbeitet'
+                : 'Verweis vom Rektorat'}
+            {feedback.anweisung ? (
               <div className="mt-1 text-[10px] text-paper-400">
-                {feedback.verstoesse.map((v) => v.titel).join(' · ')}
+                {feedback.befolgt
+                  ? 'Die Papiere waren in Ordnung.'
+                  : `Entgegen der Anordnung · ${feedback.anweisung.kurz}`}
               </div>
+            ) : (
+              feedback.verstoesse.length > 0 && (
+                <div className="mt-1 text-[10px] text-paper-400">
+                  {feedback.verstoesse.map((v) => v.titel).join(' · ')}
+                </div>
+              )
             )}
           </div>
         )}

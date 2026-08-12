@@ -76,6 +76,21 @@ export default function DaySummary({ stand, info, onWeiter }) {
               </div>
           </div>
 
+          {/* Die Anordnung des Tages bekommt einen eigenen Vermerk, in
+              Aktenfarbe statt in Grün oder Rot. Ohne ihn verschwände die
+              einzige Entscheidung des Tages, die keine Rechenaufgabe war,
+              spurlos zwischen zwei Zahlen. */}
+          {stand.tagBilanz.anweisung && (
+            <div className="mb-5 border-l-2 border-ink-900/40 pl-3">
+              <p className="font-form text-[10px] uppercase tracking-widest text-ink-500">
+                Anordnung des Rektorats
+              </p>
+              <p className="font-form text-[13px] font-bold text-ink-900">
+                {stand.tagBilanz.anweisung === 'befolgt' ? 'Ausgeführt' : 'Nicht ausgeführt'}
+              </p>
+            </div>
+          )}
+
           <Zeile label="Rektorat" wert={stand.ruf.rektor} delta={dR} farbe="var(--color-brass)" />
           <Zeile
             label="Schülerschaft"

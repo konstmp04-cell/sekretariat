@@ -12,6 +12,7 @@ import { VERSTOSS, REGELN, neueRegeln } from './regeln.js'
 import { makeFace, abweichendesFoto, fotoAbweichungFuerTag } from './face.js'
 import { forgeryStrengthForDay } from './signature.js'
 import { auftritteAmTag } from './figuren.js'
+import { anweisungFuerTag, passendMachen } from './anweisungen.js'
 
 // Nach Geschlecht getrennt, damit die Entschuldigung „meine Tochter Lena"
 // bzw. „mein Sohn Jonas" schreiben kann. Vorher wurde Sohn/Tochter daraus
@@ -279,14 +280,28 @@ export function makeApplicant(day, index, verstoss = VERSTOSS.KEINER, figur = nu
  * sonst kippt das Spiel von "prüfen" zu "grundsätzlich misstrauen".
  */
 export function buildQueue(day, laenge = 8) {
-  const { chance, pick, int } = rngHelpers(makeRng(hashSeed(`queue-${day}`)))
+  const { rng, pick } = rngHelpers(makeRng(hashSeed(`queue-${day}`)))
 
   const fehlerQuote = Math.min(0.45, 0.18 + day * 0.035)
   // Welche Verstöße heute möglich sind, steht an den Regeln selbst.
   const verfuegbar = REGELN.filter((r) => r.abTag <= day).map((r) => r.id)
 
+  // Die Anzahl wird gesetzt, nicht gewürfelt.
+  //
+  // Vorher entschied ein Münzwurf je Vorgang – im Mittel stimmte die Quote
+  // damit, im Einzelfall aber überhaupt nicht: An Tag 12 kamen so 11 von 14
+  // Verstößen heraus, also 79 % statt der vorgesehenen 45 %. Und weil alle
+  // Seeds fest sind, ist das kein Pech, das sich beim nächsten Anlauf
+  // ausgleicht: JEDER Spieler bekommt denselben Tag. Genau daran kippt das
+  // Spiel von „prüfen" zu „grundsätzlich misstrauen".
+  //
+  // Abgerundet, nicht gerundet: Aufgerundet käme an Tag 8 mit 6 von 13
+  // Vorgängen wieder eine Quote von 46 % heraus – über der Grenze, die diese
+  // Zeile gerade einhalten soll.
+  const sollFehler = Math.floor(laenge * fehlerQuote)
+
   const zuteilung = Array.from({ length: laenge }, () => ({
-    verstoss: chance(fehlerQuote) ? pick(verfuegbar) : VERSTOSS.KEINER,
+    verstoss: VERSTOSS.KEINER,
     figur: null,
     auftritt: null,
   }))
@@ -295,11 +310,28 @@ export function buildQueue(day, laenge = 8) {
     zuteilung.map((z, i) => (!z.figur && i > 0 ? i : -1)).filter((i) => i >= 0)
 
   // Stammgäste zuerst: Ihre Auftritte stehen im Drehbuch und dürfen nicht
-  // von einer nachträglich eingesetzten Regel verdrängt werden.
+  // von einer nachträglich eingesetzten Regel verdrängt werden. Sie zählen
+  // in die Quote hinein, statt obendrauf zu kommen.
   for (const { figur, auftritt } of auftritteAmTag(day)) {
     const frei = freieStellen()
     const stelle = frei.length ? pick(frei) : 1
     zuteilung[stelle] = { verstoss: auftritt.verstoss, figur, auftritt }
+  }
+
+  const fehlerZahl = () => zuteilung.filter((z) => z.verstoss !== VERSTOSS.KEINER).length
+
+  // Restliche Verstöße auf zufällige freie Plätze verteilen (Fisher-Yates,
+  // damit jede Anordnung gleich wahrscheinlich ist).
+  const offen = zuteilung
+    .map((z, i) => (!z.figur && z.verstoss === VERSTOSS.KEINER ? i : -1))
+    .filter((i) => i >= 0)
+  for (let i = offen.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[offen[i], offen[j]] = [offen[j], offen[i]]
+  }
+  for (const stelle of offen) {
+    if (fehlerZahl() >= sollFehler) break
+    zuteilung[stelle].verstoss = pick(verfuegbar)
   }
 
   // Heute neu eingeführte Regeln müssen mindestens einmal vorkommen.
@@ -309,14 +341,38 @@ export function buildQueue(day, laenge = 8) {
   // Schicht ist das keineswegs unwahrscheinlich. Die Dienstanweisung kündigt
   // dann etwas an, das den ganzen Tag nicht vorkommt, und genau der Moment,
   // der das Spiel antreibt, läuft ins Leere.
+  //
+  // Umgewidmet wird ein bestehender Verstoß, statt einen weiteren anzulegen –
+  // sonst überschriebe die Zusicherung die eben erst gesetzte Quote.
   for (const regel of neueRegeln(day)) {
     if (zuteilung.some((z) => z.verstoss === regel.id)) continue
-    const frei = zuteilung
-      .map((z, i) => (!z.figur && z.verstoss === VERSTOSS.KEINER && i > 0 ? i : -1))
+    const belegt = zuteilung
+      .map((z, i) => (!z.figur && z.verstoss !== VERSTOSS.KEINER && i > 0 ? i : -1))
       .filter((i) => i >= 0)
-    const stelle = frei.length ? pick(frei) : (freieStellen()[0] ?? int(1, laenge - 1))
+    const stelle = belegt.length ? pick(belegt) : (freieStellen()[0] ?? 1)
     zuteilung[stelle].verstoss = regel.id
   }
 
-  return zuteilung.map((z, i) => makeApplicant(day, i, z.verstoss, z.figur, z.auftritt))
+  const schlange = zuteilung.map((z, i) => makeApplicant(day, i, z.verstoss, z.figur, z.auftritt))
+
+  // Gilt heute eine Anweisung, muss sie auch jemanden treffen.
+  //
+  // Und zwar jemanden mit einwandfreien Papieren: Läge zusätzlich ein Verstoß
+  // vor, wäre der Fall ohnehin abzulehnen, und aus der Entscheidung würde
+  // wieder eine Rechenaufgabe. Ohne diese Zusicherung kann eine Anweisung am
+  // Tag ihres Erlasses ins Leere laufen – dieselbe Falle wie bei den Regeln,
+  // nur schlimmer: Eine Regel, die nicht vorkommt, fehlt bloß. Eine
+  // Anordnung, die niemanden trifft, entwertet den ganzen Einfall.
+  const anw = anweisungFuerTag(day)
+  if (anw && !schlange.some((a) => a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))) {
+    const kandidaten = schlange
+      .map((a, i) => (a.verstoss === VERSTOSS.KEINER && i > 0 ? i : -1))
+      .filter((i) => i >= 0)
+    if (kandidaten.length) {
+      const stelle = pick(kandidaten)
+      passendMachen(anw, schlange[stelle], !!anw.klasse && hatKlausur(day, anw.klasse))
+    }
+  }
+
+  return schlange
 }

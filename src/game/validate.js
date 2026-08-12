@@ -9,6 +9,7 @@
 
 import { VERSTOSS, REGELN, aktiveRegeln, neueRegeln } from './regeln.js'
 import { hatKlausur } from './applicant.js'
+import { anweisungFuer } from './anweisungen.js'
 
 export { VERSTOSS, REGELN, aktiveRegeln, neueRegeln }
 
@@ -62,6 +63,28 @@ export function findeVerstoesse(a, day) {
 export function pruefeEntscheidung(a, day, entscheidung) {
   const verstoesse = findeVerstoesse(a, day)
   const solltePassieren = verstoesse.length === 0
-  const richtig = (entscheidung === 'ok') === solltePassieren
-  return { richtig, verstoesse, solltePassieren }
+  const anweisung = anweisungFuer(a, day, verstoesse.length)
+
+  // Ein Anweisungsfall hat keine richtige Antwort, also wird auch keine
+  // vergeben. `richtig` bleibt null statt false – der Unterschied ist nicht
+  // kosmetisch: Als false gezählt, stünde am Ende im Zeugnis, der Spieler
+  // habe sich geirrt, weil er einen Unschuldigen nicht abgewiesen hat. Genau
+  // die Aussage soll das Spiel nicht treffen.
+  if (anweisung) {
+    return {
+      richtig: null,
+      verstoesse,
+      solltePassieren,
+      anweisung,
+      befolgt: entscheidung === 'deny',
+    }
+  }
+
+  return {
+    richtig: (entscheidung === 'ok') === solltePassieren,
+    verstoesse,
+    solltePassieren,
+    anweisung: null,
+    befolgt: null,
+  }
 }

@@ -10,6 +10,7 @@
 import Paper from './Paper.jsx'
 import Schuelerzeitung from './Schuelerzeitung.jsx'
 import { aktiveRegeln, paragraph } from '../game/regeln.js'
+import { anweisungFuerTag } from '../game/anweisungen.js'
 import { ausgabe } from '../game/zeitung.js'
 import { warnstufe } from '../game/spielstand.js'
 import { spiele, tonFreischalten } from '../game/audio.js'
@@ -30,6 +31,7 @@ export default function Briefing({ info, stand, onStart }) {
   const neu = new Set(info.neueRegeln.map((r) => r.id))
   const meldungen = ausgabe(info.tag, stand)
   const warnung = VERWARNUNG[warnstufe(stand)]
+  const anweisung = anweisungFuerTag(info.tag)
 
   return (
     <div className="desk-surface flex h-full w-full items-center justify-center overflow-auto p-8">
@@ -58,10 +60,43 @@ export default function Briefing({ info, stand, onStart }) {
             </div>
           )}
 
+          {/* Die Anordnung steht vor dem Regelwerk, nicht darin.
+              Bewusst als eigenes, aufgeklebtes Blatt gesetzt und von Hand
+              gezeichnet: Sie kommt nicht aus derselben Quelle wie die
+              Paragraphen, und sie soll auch nicht so aussehen. */}
+          {anweisung && (
+            <div
+              className="mb-5 border-2 border-ink-900/70 px-4 py-3"
+              style={{ background: 'rgb(120 110 90 / 0.14)', transform: 'rotate(-0.4deg)' }}
+            >
+              <div className="flex items-baseline justify-between border-b border-ink-900/30 pb-1">
+                <p className="font-form text-[10px] font-bold uppercase tracking-[0.2em] text-ink-900">
+                  Anordnung
+                </p>
+                <p className="font-form text-[9px] uppercase tracking-widest text-ink-500">
+                  Rektorat · nicht zur Weitergabe
+                </p>
+              </div>
+              <p className="mt-2 text-[13px] font-bold leading-snug text-ink-900">
+                {anweisung.text}
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-ink-700 italic">
+                {anweisung.begruendung}
+              </p>
+              <p className="mt-2 font-form text-[9px] uppercase tracking-widest text-ink-500">
+                Gilt für den heutigen Tag · unabhängig vom Regelwerk
+              </p>
+            </div>
+          )}
+
           {info.neueRegeln.length > 0 && (
             <div className="mb-5 border-l-4 border-stamp-deny bg-stamp-deny/10 px-4 py-3">
+              {/* Hieß früher „Neue Anweisung". Seit es Anordnungen des
+                  Rektorats gibt, die neben dem Regelwerk stehen, wäre das
+                  dasselbe Wort für zwei verschiedene Dinge – und ausgerechnet
+                  der Unterschied zwischen ihnen ist der Kern des Spiels. */}
               <p className="font-form text-[10px] font-bold uppercase tracking-[0.16em] text-stamp-deny">
-                {info.neueRegeln.length === 1 ? 'Neue Anweisung' : 'Neue Anweisungen'}
+                {info.neueRegeln.length === 1 ? 'Neue Regel' : 'Neue Regeln'}
               </p>
               <p className="mt-1 text-[12px] leading-snug text-ink-700">
                 Ab heute zusätzlich zu beachten. Verstöße gehen zu deinen Lasten.

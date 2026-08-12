@@ -58,6 +58,7 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
   const n = note(quote)
   const endText = ENDTEXTE[ende] ?? ENDTEXTE[ENDE.GESCHAFFT]
   const durchgewunken = g.verstoesse - g.erwischt
+  const anweisungenGesamt = stand.anweisungen.befolgt + stand.anweisungen.verweigert
   // Bei Freistellung wird kein Zeugnis ausgestellt, sondern ein Bescheid –
   // dasselbe Papier, dieselbe Amtssprache, aber ohne Note.
   const bescheid = ende === ENDE.DISZIPLINAR
@@ -113,6 +114,22 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
               wert={stand.bestechungen}
               ton="var(--color-stamp-deny)"
             />
+          )}
+
+          {/* Anordnungen bekommen einen eigenen Abschnitt und keine Farbe.
+              Das ist der Punkt, an dem sich das Zeugnis eines Urteils
+              enthält: Es zählt, wie oft man sich gefügt hat und wie oft
+              nicht, und lässt beides nebeneinander stehen. Grün oder Rot
+              hier wäre die Behauptung, es habe eine richtige Antwort
+              gegeben – und damit wäre die ganze Entscheidung entwertet. */}
+          {anweisungenGesamt > 0 && (
+            <>
+              <p className="mb-1 mt-5 font-form text-[10px] uppercase tracking-[0.16em] text-ink-500">
+                Anordnungen des Rektorats
+              </p>
+              <Posten label="Befolgt" wert={stand.anweisungen.befolgt} />
+              <Posten label="Nicht befolgt" wert={stand.anweisungen.verweigert} />
+            </>
           )}
 
           <p className="mb-1 mt-5 font-form text-[10px] uppercase tracking-[0.16em] text-ink-500">
@@ -172,6 +189,23 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
           {stand.bestechungen > 0 && !bescheid && (
             <p className="mt-4 border-t border-ink-500/30 pt-2 text-center font-form text-[10px] uppercase tracking-[0.14em] text-stamp-deny">
               Ein Vorgang blieb aktenkundig.
+            </p>
+          )}
+
+          {/* Der Schlusssatz zu den Anordnungen – in Aktenfarbe, nicht in
+              Rot. Beide Fassungen sind bewusst unangenehm: Die eine hält
+              fest, dass man sich widersetzt hat, die andere, dass man es
+              nie getan hat. Welche davon schlimmer ist, entscheidet der
+              Spieler, nicht das Spiel. */}
+          {anweisungenGesamt > 0 && !bescheid && (
+            <p className="mt-3 border-t border-ink-500/30 pt-2 text-center font-form text-[10px] uppercase tracking-[0.14em] text-ink-500">
+              {stand.anweisungen.verweigert === 0
+                ? 'Sämtliche Anordnungen wurden ausgeführt.'
+                : stand.anweisungen.befolgt === 0
+                  ? 'Keiner Anordnung wurde Folge geleistet.'
+                  : `${stand.anweisungen.verweigert} Anordnung${
+                      stand.anweisungen.verweigert === 1 ? '' : 'en'
+                    } ohne Folge geblieben.`}
             </p>
           )}
         </Paper>

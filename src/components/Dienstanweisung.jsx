@@ -14,11 +14,13 @@
 
 import { useState } from 'react'
 import { regelnNachDokument, neueRegeln, paragraph } from '../game/regeln.js'
+import { anweisungFuerTag } from '../game/anweisungen.js'
 import { spiele } from '../game/audio.js'
 
 export default function Dienstanweisung({ tag }) {
   const gruppen = regelnNachDokument(tag)
   const neu = new Set(neueRegeln(tag).map((r) => r.id))
+  const anweisung = anweisungFuerTag(tag)
   const [offen, setOffen] = useState(null)
   const [eingeklappt, setEingeklappt] = useState(false)
 
@@ -39,6 +41,24 @@ export default function Dienstanweisung({ tag }) {
 
       {!eingeklappt && (
         <div className="max-h-[62vh] overflow-y-auto px-3 py-2">
+          {/* Die Anweisung steht ÜBER dem Regelwerk und sieht anders aus als
+              alles darunter – sie ist keine Regel, sondern eine Anordnung,
+              und sie hebt sich über die Papiere hinweg. Wer sie mit den
+              Paragraphen in eine Liste setzte, machte sie zu einer davon. */}
+          {anweisung && (
+            <div className="mb-3 rounded-sm border border-stamp-deny/70 bg-stamp-deny/10 px-2 py-[6px]">
+              <p className="font-form text-[8px] uppercase tracking-[0.18em] text-stamp-deny">
+                Anordnung des Rektorats
+              </p>
+              <p className="mt-[3px] font-form text-[10px] leading-snug text-paper-200">
+                {anweisung.text}
+              </p>
+              <p className="mt-[3px] font-form text-[9px] leading-snug text-paper-400/60 italic">
+                {anweisung.begruendung}
+              </p>
+            </div>
+          )}
+
           {gruppen.map((g) => (
             <div key={g.dokument} className="mb-2 last:mb-0">
               <p className="mb-1 font-form text-[8px] uppercase tracking-[0.18em] text-paper-400/55">
