@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+/*
+ * Begrenzte Palette. Das ist die wichtigste Regel des ganzen Looks:
+ * Papers, Please wirkt geschlossen, weil kaum eine Farbe vorkommt, die nicht
+ * aus dieser Welt stammt. Jede neue Farbe muss sich hier rechtfertigen.
+ */
+@theme {
+  --color-desk-900: #16181a;
+  --color-desk-800: #1f2326;
+  --color-desk-700: #2b3034;
+  --color-desk-600: #3a4045;
+
+  --color-paper-100: #f4ecd8;
+  --color-paper-200: #e9dfc6;
+  --color-paper-300: #dccfae;
+  --color-paper-400: #c6b68f;
+
+  --color-ink-900: #232b33;
+  --color-ink-700: #3c4650;
+  --color-ink-500: #5d6874;
+
+  --color-stamp-deny: #a83226;
+  --color-stamp-ok: #2c6b52;
+  --color-brass: #b99659;
+
+  --font-hand: 'Segoe Script', 'Bradley Hand', 'Brush Script MT', 'Comic Sans MS', cursive;
+  --font-form: ui-monospace, 'Courier New', Courier, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-desk-900);
+  color: var(--color-paper-200);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* --- Bewegung ---------------------------------------------------------- */
+
+@keyframes paper-in {
+  0% {
+    transform: translate(-40%, 60%) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(var(--tilt, 0deg));
+    opacity: 1;
+  }
+}
+
+/* Der Stempel: runter, aufsetzen, kurz stauchen, wieder hoch. Das kurze
+   Verharren unten ist das, was den Schlag körperlich wirken lässt. */
+@keyframes stamp-slam {
+  0% {
+    transform: translate(-50%, -220%) scale(1.5);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ink-settle {
+  from {
+    filter: blur(1.4px);
+    opacity: 0.5;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+@keyframes desk-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3px, 2px);
+  }
+  40% {
+    transform: translate(3px, -2px);
+  }
+  60% {
+    transform: translate(-2px, -1px);
+  }
+  80% {
+    transform: translate(2px, 1px);
+  }
+}
+
+.animate-paper-in {
+  animation: paper-in 620ms cubic-bezier(0.22, 1.1, 0.36, 1) both;
+}
+
+.animate-stamp-slam {
+  animation: stamp-slam 380ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.animate-ink-settle {
+  animation: ink-settle 520ms ease-out both;
+}
+
+.animate-desk-shake {
+  animation: desk-shake 260ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-paper-in,
+  .animate-stamp-slam,
+  .animate-ink-settle,
+  .animate-desk-shake {
+    animation-duration: 1ms;
+  }
+}
+
+/* --- Materialien ------------------------------------------------------- */
+
+/* Papier ist nie flach: leichter Farbverlauf, damit die Lampe von oben
+   links zu kommen scheint, plus eine ganz feine Faserstruktur. */
+.paper-sheet {
+  background-color: var(--color-paper-100);
+  background-image:
+    radial-gradient(ellipse at 22% 8%, rgb(255 255 255 / 0.55), transparent 55%),
+    radial-gradient(ellipse at 85% 95%, rgb(120 96 60 / 0.16), transparent 60%);
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.28),
+    0 10px 22px -8px rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px rgb(120 96 60 / 0.1);
+}
+
+.paper-fiber {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+}
+
+.desk-surface {
+  background-color: var(--color-desk-800);
+  background-image:
+    repeating-linear-gradient(
+      92deg,
+      rgb(0 0 0 / 0.16) 0px,
+      rgb(0 0 0 / 0.16) 2px,
+      transparent 2px,
+      transparent 7px
+    ),
+    radial-gradient(ellipse 70% 55% at 50% 34%, rgb(212 180 120 / 0.16), transparent 70%);
+}

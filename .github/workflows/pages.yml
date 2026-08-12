@@ -1,0 +1,58 @@
+name: Veröffentlichen
+
+# Baut das Spiel und stellt es auf GitHub Pages. Ausschließlich statische
+# Dateien – ein Backend gibt es bewusst nicht, Pages könnte es auch gar
+# nicht ausführen.
+
+on:
+  push:
+    branches: [main]
+  # Erlaubt das Veröffentlichen von Hand, ohne dafür etwas pushen zu müssen.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Es läuft immer nur eine Veröffentlichung gleichzeitig; neuere Pushes lösen
+# ältere ab, statt sich gegenseitig zu überholen.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+      # `enablement` richtet Pages beim ersten Lauf selbst ein, statt es in
+      # den Einstellungen vorauszusetzen. In einem öffentlichen Repository
+      # reicht dafür die oben erteilte Berechtigung `pages: write`.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  veroeffentlichen:
+    needs: bauen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

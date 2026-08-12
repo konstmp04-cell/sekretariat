@@ -1,0 +1,5 @@
+{
+  "plugins": ["react"],
+  "env": { "browser": true, "es2024": true },
+  "rules": {}
+}
