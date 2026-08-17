@@ -11,6 +11,7 @@ import Paper from './Paper.jsx'
 import Schuelerzeitung from './Schuelerzeitung.jsx'
 import { aktiveRegeln, paragraph } from '../game/regeln.js'
 import { anweisungFuerTag } from '../game/anweisungen.js'
+import { stoerungAmTag } from '../game/stoerungen.js'
 import { ausgabe } from '../game/zeitung.js'
 import { warnstufe } from '../game/spielstand.js'
 import { spiele, tonFreischalten } from '../game/audio.js'
@@ -32,6 +33,7 @@ export default function Briefing({ info, stand, onStart }) {
   const meldungen = ausgabe(info.tag, stand)
   const warnung = VERWARNUNG[warnstufe(stand)]
   const anweisung = anweisungFuerTag(info.tag)
+  const stoerung = stoerungAmTag(info.tag)
 
   return (
     <div className="desk-surface flex h-full w-full items-center justify-center overflow-auto p-8">
@@ -86,6 +88,24 @@ export default function Briefing({ info, stand, onStart }) {
               <p className="mt-2 font-form text-[9px] uppercase tracking-widest text-ink-500">
                 Gilt für den heutigen Tag · unabhängig vom Regelwerk
               </p>
+            </div>
+          )}
+
+          {/* Störung: kein Befehl, sondern eine Mitteilung – deshalb weder
+              rot noch mit Rahmen, sondern als schlichter Vermerk. Wer sie mit
+              der Anordnung gleich aussehen ließe, machte aus einer defekten
+              Leitung eine Zumutung des Rektorats. */}
+          {stoerung && (
+            <div className="mb-5 border-l-4 border-ink-500/50 bg-ink-500/5 px-4 py-3">
+              <p className="font-form text-[10px] font-bold uppercase tracking-[0.16em] text-ink-700">
+                Vermerk · {stoerung.titel}
+              </p>
+              <p className="mt-1 text-[12px] leading-snug text-ink-700">{stoerung.text}</p>
+              {stoerung.setztAus && (
+                <p className="mt-1 font-form text-[11px] font-bold text-ink-900">
+                  Die betroffene Prüfung entfällt für heute.
+                </p>
+              )}
             </div>
           )}
 

@@ -10,6 +10,7 @@
 import { VERSTOSS, REGELN, aktiveRegeln, neueRegeln } from './regeln.js'
 import { hatKlausur } from './applicant.js'
 import { anweisungFuer } from './anweisungen.js'
+import { ausgesetzteRegel } from './stoerungen.js'
 
 export { VERSTOSS, REGELN, aktiveRegeln, neueRegeln }
 
@@ -19,7 +20,12 @@ export { VERSTOSS, REGELN, aktiveRegeln, neueRegeln }
  */
 export function findeVerstoesse(a, day) {
   const treffer = []
+  // Eine Störung kann einer Regel die Grundlage nehmen – ohne Lichtbild in
+  // der Akte lässt sich nichts abgleichen. Dann wird sie für den Tag
+  // ausgesetzt, statt den Spieler an einem leeren Rahmen scheitern zu lassen.
+  const ruht = ausgesetzteRegel(day)
   for (const regel of aktiveRegeln(day)) {
+    if (regel.id === ruht) continue
     let verletzt = false
     switch (regel.id) {
       case VERSTOSS.FAELSCHUNG:

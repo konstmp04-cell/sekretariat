@@ -60,7 +60,7 @@ function Apparat({ abgehoben }) {
   )
 }
 
-export default function Telefon({ applicant, uebrig, onAnruf }) {
+export default function Telefon({ applicant, uebrig, gestoert = false, onAnruf }) {
   const [offen, setOffen] = useState(false)
   const [klingelt, setKlingelt] = useState(false)
   const [notiz, setNotiz] = useState(null)
@@ -78,7 +78,7 @@ export default function Telefon({ applicant, uebrig, onAnruf }) {
   useEffect(() => () => clearTimeout(uhr.current), [])
 
   const anrufen = (nummer) => {
-    if (uebrig <= 0 || klingelt) return
+    if (gestoert || uebrig <= 0 || klingelt) return
     setOffen(false)
     setKlingelt(true)
     spiele('waehlen')
@@ -110,9 +110,9 @@ export default function Telefon({ applicant, uebrig, onAnruf }) {
         </button>
         <span
           className="font-form text-[9px] uppercase tracking-[0.14em]"
-          style={{ color: leer ? 'var(--color-ink-500)' : 'var(--color-brass)' }}
+          style={{ color: leer || gestoert ? 'var(--color-ink-500)' : 'var(--color-brass)' }}
         >
-          {klingelt ? 'Es klingelt …' : `${uebrig} von ${ANRUFE_PRO_TAG}`}
+          {gestoert ? 'Kein Freizeichen' : klingelt ? 'Es klingelt …' : `${uebrig} von ${ANRUFE_PRO_TAG}`}
         </span>
       </div>
 
@@ -122,7 +122,16 @@ export default function Telefon({ applicant, uebrig, onAnruf }) {
           <p className="mb-1 px-1 font-form text-[9px] uppercase tracking-[0.16em] text-brass">
             Rückfrage
           </p>
-          {leer ? (
+          {/* Bei gestörter Leitung bleibt der Apparat stehen und die Liste
+              öffnet sich weiter – nur kommt niemand ans andere Ende. Ein
+              Telefon, das man gar nicht mehr anfassen kann, wäre kein
+              defektes Telefon, sondern gar keins. */}
+          {gestoert ? (
+            <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
+              Kein Freizeichen. Die Amtsleitung ist seit gestern tot, die
+              Technik ist verständigt.
+            </p>
+          ) : leer ? (
             <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
               Für heute keine Rückfragen mehr. Zwei am Tag, so steht es in der
               Dienstanweisung.

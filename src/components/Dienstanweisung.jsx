@@ -15,12 +15,15 @@
 import { useState } from 'react'
 import { regelnNachDokument, neueRegeln, paragraph } from '../game/regeln.js'
 import { anweisungFuerTag } from '../game/anweisungen.js'
+import { stoerungAmTag, ausgesetzteRegel } from '../game/stoerungen.js'
 import { spiele } from '../game/audio.js'
 
 export default function Dienstanweisung({ tag }) {
   const gruppen = regelnNachDokument(tag)
   const neu = new Set(neueRegeln(tag).map((r) => r.id))
   const anweisung = anweisungFuerTag(tag)
+  const stoerung = stoerungAmTag(tag)
+  const ruht = ausgesetzteRegel(tag)
   const [offen, setOffen] = useState(null)
   const [eingeklappt, setEingeklappt] = useState(false)
 
@@ -59,6 +62,17 @@ export default function Dienstanweisung({ tag }) {
             </div>
           )}
 
+          {stoerung && (
+            <div className="mb-3 border-l-2 border-paper-400/50 bg-paper-400/5 px-2 py-[6px]">
+              <p className="font-form text-[8px] uppercase tracking-[0.16em] text-paper-400/80">
+                Vermerk
+              </p>
+              <p className="mt-[2px] font-form text-[10px] leading-snug text-paper-200">
+                {stoerung.titel}
+              </p>
+            </div>
+          )}
+
           {gruppen.map((g) => (
             <div key={g.dokument} className="mb-2 last:mb-0">
               <p className="mb-1 font-form text-[8px] uppercase tracking-[0.18em] text-paper-400/55">
@@ -79,11 +93,20 @@ export default function Dienstanweisung({ tag }) {
                       </span>
                       <span
                         className={`font-form text-[11px] leading-tight transition ${
-                          auf ? 'text-brass' : 'text-paper-200 hover:text-brass'
+                          r.id === ruht
+                            ? 'text-paper-400/40 line-through'
+                            : auf
+                              ? 'text-brass'
+                              : 'text-paper-200 hover:text-brass'
                         }`}
                       >
                         {r.titel}
                       </span>
+                      {r.id === ruht && (
+                        <span className="ml-auto shrink-0 font-form text-[7px] uppercase tracking-wider text-paper-400/50">
+                          ruht
+                        </span>
+                      )}
                       {neu.has(r.id) && (
                         <span className="ml-auto shrink-0 rounded-sm bg-stamp-deny px-1 font-form text-[7px] uppercase tracking-wider text-paper-100">
                           neu

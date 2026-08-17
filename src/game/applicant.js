@@ -14,6 +14,7 @@ import { forgeryStrengthForDay } from './signature.js'
 import { auftritteAmTag, FIGUREN } from './figuren.js'
 import { anweisungFuerTag, passendMachen } from './anweisungen.js'
 import { kuriositaetAmTag, kuriosumAnwenden, KURIOSUM } from './kuriositaeten.js'
+import { ausgesetzteRegel } from './stoerungen.js'
 
 // Nach Geschlecht getrennt, damit die Entschuldigung „meine Tochter Lena"
 // bzw. „mein Sohn Jonas" schreiben kann. Vorher wurde Sohn/Tochter daraus
@@ -343,7 +344,10 @@ export function buildQueue(day, laenge = 8) {
 
   const fehlerQuote = Math.min(0.45, 0.18 + day * 0.035)
   // Welche Verstöße heute möglich sind, steht an den Regeln selbst.
-  const verfuegbar = REGELN.filter((r) => r.abTag <= day)
+  // Eine heute ausgesetzte Regel wird gar nicht erst eingebaut: Ein Verstoß,
+  // den niemand prüfen kann, wäre keine Störung, sondern eine Falle.
+  const ruht = ausgesetzteRegel(day)
+  const verfuegbar = REGELN.filter((r) => r.abTag <= day && r.id !== ruht)
 
   /**
    * Junge Regeln kommen häufiger dran als alte.

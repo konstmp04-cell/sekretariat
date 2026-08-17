@@ -211,6 +211,49 @@ bleiben außerdem der erste Vorgang des Tages, alle Stammgäste, der Betroffene
 der Anordnung und der Fall, an dem die heute eingeführte Regel vorgeführt
 wird.
 
+## Störungen
+
+An Inhalt fehlte es nicht – acht Regeln, drei Werkzeuge, Anordnungen,
+Kuriositäten, wiederkehrende Figuren. Was fehlte, war Abwechslung in der
+**Form**: Jeder der zwölf Tage hatte denselben Ablauf, und eine neunte Regel
+hätte daran nichts geändert.
+
+Eine Störung ändert keine Regel, sie nimmt ein Werkzeug weg.
+
+| Tag | Störung | Wirkung |
+| --- | --- | --- |
+| 6 | Lupe an die Fachschaft Kunst verliehen | Vergleichen mit bloßem Auge |
+| 8 | Amtsleitung gestört | Kein Anruf möglich |
+| 11 | Lichtbilder zur Digitalisierung abgeholt | §7 Lichtbildabgleich ruht |
+
+Der Gewinn liegt weniger im gestörten Tag als in allen anderen: **Man merkt
+erst, was ein Werkzeug einem abnimmt, wenn es einmal fehlt.** Die Lupe benutzt
+man nach drei Tagen automatisch; an dem Tag, an dem sie verliehen ist, sieht
+man zum ersten Mal, wie viel sie trägt.
+
+Tag 8 ist mit Bedacht gewählt: Das ist der Tag, an dem das Rektorat anordnet,
+Atteste einer bestimmten Praxis nicht anzuerkennen – und ausgerechnet dort
+kann man dann nicht nachfragen.
+
+### Zwei Grundsätze
+
+**Immer angekündigt.** Die Störung steht am Morgen im Briefing und den ganzen
+Tag über im Regelwerk. Ein Werkzeug, das ohne Vorwarnung fehlt, ist kein
+Ereignis, sondern ein Fehler – der Spieler würde zu Recht annehmen, dass etwas
+kaputt ist.
+
+**Nie eine Falle.** Nimmt eine Störung einer Regel die Grundlage, wird die
+Regel für den Tag ausgesetzt: sichtbar durchgestrichen im Regelwerk, und
+`buildQueue` baut den zugehörigen Verstoß gar nicht erst ein. An Tag 11 gibt
+es null Lichtbild-Verstöße, an Tag 10 und 12 wieder welche.
+
+Gestaltet ist die Störung bewusst anders als eine Anordnung: kein Rot, kein
+Rahmen, sondern ein schlichter Vermerk. Wer beide gleich aussehen ließe,
+machte aus einer defekten Leitung eine Zumutung des Rektorats.
+
+Drei auf zwölf Tage, nicht mehr. Eine Störung, die jeden zweiten Tag kommt,
+ist keine mehr, sondern der Normalzustand.
+
 ## Das Telefon
 
 Bis hierher gab es genau zwei Verben: links stempeln, rechts stempeln. Die

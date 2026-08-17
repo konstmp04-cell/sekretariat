@@ -28,6 +28,7 @@ import Telefon from './components/Telefon.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
 import { lichtDaempfung } from './game/wetter.js'
+import { verfuegbar, STOERUNG } from './game/stoerungen.js'
 import { spiele, ladeTonEinstellung, raumklangStarten, raumklangStoppen } from './game/audio.js'
 
 ladeTonEinstellung()
@@ -410,6 +411,7 @@ function Schalter({ stand, info, dispatch }) {
         <Telefon
           applicant={a}
           uebrig={stand.anrufe}
+          gestoert={!verfuegbar(STOERUNG.TELEFON, info.tag)}
           onAnruf={() => dispatch({ typ: 'ANRUFEN' })}
         />
 
@@ -474,7 +476,12 @@ function Schalter({ stand, info, dispatch }) {
             </Ziehbar>
           )}
 
-          <Lupe start={startLupe} inhalte={lupeInhalte} />
+          {/* An einem Tag ist sie verliehen. Sie fehlt dann schlicht – kein
+              ausgegrauter Platzhalter, denn ein Gegenstand, der nicht da ist,
+              liegt eben nicht herum. Angekündigt wurde es am Morgen. */}
+          {verfuegbar(STOERUNG.LUPE, info.tag) && (
+            <Lupe start={startLupe} inhalte={lupeInhalte} />
+          )}
 
           {/* Einmaliger Hinweis beim allerersten Vorgang. Danach nie wieder –
               wer es einmal gemacht hat, braucht die Erinnerung nicht. */}
