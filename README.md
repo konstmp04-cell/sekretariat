@@ -211,6 +211,57 @@ bleiben außerdem der erste Vorgang des Tages, alle Stammgäste, der Betroffene
 der Anordnung und der Fall, an dem die heute eingeführte Regel vorgeführt
 wird.
 
+## Das Telefon
+
+Bis hierher gab es genau zwei Verben: links stempeln, rechts stempeln. Die
+Lupe ist ein drittes, aber ein passives – sie zeigt nur genauer, was ohnehin
+dasteht. Was fehlte, war ein Werkzeug, das nicht entscheidet, sondern
+**herausfindet**.
+
+Drei Nummern, jede beantwortet die Frage ihres Dokuments:
+
+| Anruf | Beantwortet |
+| --- | --- |
+| Praxis | Deckt das Attest wirklich alle Fehltage ab? |
+| Eltern | Stammt die Unterschrift von ihnen? |
+| Rektorat | Liegt etwas gegen diesen Schüler vor? |
+
+Die Praxis erscheint nur, wenn ein Attest vorliegt – sonst wäre die Nummer
+eine leere Verlockung.
+
+### Zwei Anrufe am Tag, und das ist die wichtigste Zahl
+
+Ein Telefon, das Gewissheit gibt, macht genaues Hinsehen überflüssig. Wer bei
+jedem Zweifel anrufen darf, braucht die Lupe nie wieder – und damit wäre die
+Kernhandlung des Spiels erledigt.
+
+Bei zwei Anrufen auf bis zu vierzehn Vorgänge ist es keine Abkürzung, sondern
+eine Rettungsleine, die man sich für den einen Fall aufspart, bei dem man
+wirklich nicht weiterkommt. Der eigentliche Gewinn ist deshalb nicht die
+Auskunft, sondern die Frage davor: *Verbrauche ich das jetzt, oder traue ich
+meinen Augen?*
+
+Der Vorrat wird zu jedem Schichtbeginn neu gefüllt und **nicht** gespeichert –
+eine Tagesration, die über Nacht überlebt, wäre keine.
+
+### Die Auskunft liest die Papiere, nicht den Generator
+
+Wie bei der Regelprüfung werden die Antworten aus den tatsächlichen
+Dokumentdaten abgeleitet und nie aus dem Feld `verstoss`. Ein Telefon, das die
+Absicht des Generators ausplaudert, würde bei jedem Fehler im Generator
+mitlügen.
+
+Gesprochen wird in wörtlicher Rede und im Tonfall der jeweiligen Stelle: Die
+Praxis ist beflissen, das Rektorat einsilbig, Eltern sind überrascht oder
+verlegen. Eine Auskunft, die wie eine Datenbankantwort klingt, nimmt dem Anruf
+genau das, wofür er da ist.
+
+> **Mutter Ritter:** „Ich habe heute gar nichts geschrieben. Was steht denn da
+> unten drunter?"
+
+Das Wählen dauert gut zwei Sekunden – Scheibe zurück, zwei Rufzeichen. Auch
+das ist Absicht: Ein Anruf soll sich nach „das dauert jetzt" anfühlen.
+
 ## Die Lupe
 
 Ab Tag 11 weicht eine Fälschung nur noch in einer einzigen Schlaufe vom

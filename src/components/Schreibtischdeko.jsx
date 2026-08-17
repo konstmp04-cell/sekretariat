@@ -146,8 +146,9 @@ export default function Schreibtischdeko({ tag = 1 }) {
       </svg>
 
       {/* --- Tasse ------------------------------------------------------- */}
-      {/* Unten links, unterhalb des Klausurplans. */}
-      <div className="absolute" style={{ left: '3%', top: '82%' }}>
+      {/* Rechts unten. Stand zuvor links, wo inzwischen das Telefon steht –
+          zwei Gegenstände an derselben Stelle sahen aus wie ein Fehler. */}
+      <div className="absolute" style={{ left: '89%', top: '80%' }}>
         <Tasse />
       </div>
     </div>

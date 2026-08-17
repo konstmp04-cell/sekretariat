@@ -24,6 +24,7 @@ import Zeugnis from './components/Zeugnis.jsx'
 import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
 import Flur, { ANMARSCH_MS } from './components/Flur.jsx'
+import Telefon from './components/Telefon.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
 import { lichtDaempfung } from './game/wetter.js'
@@ -405,6 +406,12 @@ function Schalter({ stand, info, dispatch }) {
       {/* --- Schreibtisch -------------------------------------------------- */}
       <div className="desk-surface absolute inset-x-0 bottom-0 top-[32%] border-t-4 border-desk-600">
         <Schreibtischdeko tag={info.tag} />
+
+        <Telefon
+          applicant={a}
+          uebrig={stand.anrufe}
+          onAnruf={() => dispatch({ typ: 'ANRUFEN' })}
+        />
 
         {/* Freie Ablagefläche: Die Dokumente liegen übereinander und lassen
             sich mit der Maus auseinanderschieben. */}

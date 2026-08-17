@@ -10,6 +10,7 @@
  */
 
 import { tagInfo, LETZTER_TAG } from './days.js'
+import { ANRUFE_PRO_TAG } from './telefon.js'
 
 export const PHASE = {
   TITEL: 'titel',
@@ -62,6 +63,10 @@ export function neuerStand() {
     // Angenommene Zuwendungen. Bleiben aktenkundig, auch wenn es bei einer
     // einzigen bleibt.
     bestechungen: 0,
+    // Rückfragen für heute. Wird zu jedem Schichtbeginn neu gefüllt und
+    // bewusst NICHT gespeichert: Ein Vorrat, der über Nacht überlebt, wäre
+    // keine Tagesration mehr.
+    anrufe: ANRUFE_PRO_TAG,
     abbruch: false,
   }
 }
@@ -122,8 +127,12 @@ export function reduce(stand, aktion) {
         phase: PHASE.SCHICHT,
         index: 0,
         tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
+        anrufe: ANRUFE_PRO_TAG,
         rufBeiTagesbeginn: { ...stand.ruf },
       }
+
+    case 'ANRUFEN':
+      return { ...stand, anrufe: Math.max(0, stand.anrufe - 1) }
 
     case 'ENTSCHEIDEN': {
       const { richtig, kind, hatteVerstoss, figurId, bestochen, anweisung } = aktion

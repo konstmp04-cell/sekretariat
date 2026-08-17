@@ -273,7 +273,34 @@ function flur(ctx, ziel, t) {
   }
 }
 
-export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur }
+/**
+ * Wählscheibe und Freizeichen.
+ *
+ * Das Zurückschnurren der Scheibe ist der eigentliche Klang eines alten
+ * Telefons – eine Folge dichter Klicks, die langsamer werden. Danach zwei Töne
+ * als Rufzeichen. Beides zusammen sagt „das dauert jetzt", und genau das soll
+ * ein Anruf im Spiel bedeuten.
+ */
+function waehlen(ctx, ziel, t) {
+  // Scheibe läuft zurück: Klicks mit wachsendem Abstand.
+  let wann = t
+  let abstand = 0.028
+  for (let i = 0; i < 11; i++) {
+    rauschen(ctx, ziel, wann, { dauer: 0.012, typ: 'highpass', freq: 2400, gain: 0.16 })
+    wann += abstand
+    abstand *= 1.06
+  }
+
+  // Zwei Rufzeichen, wie sie aus einem Hörer klingen: schmalbandig gefiltert,
+  // damit es nach Leitung klingt und nicht nach Zimmer.
+  for (const versatz of [0.55, 1.45]) {
+    for (const freq of [425, 638]) {
+      ton(ctx, ziel, t + versatz, { form: 'sine', freq, dauer: 0.42, gain: 0.07 })
+    }
+  }
+}
+
+export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur, waehlen }
 
 // --- Wiedergabe ---------------------------------------------------------
 

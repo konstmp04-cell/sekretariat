@@ -1,0 +1,164 @@
+/**
+ * Der Apparat auf dem Schreibtisch.
+ *
+ * Ein Wählscheibentelefon, wie es in einem Schulsekretariat eben steht: zu
+ * alt, um ersetzt zu werden, zu funktionstüchtig, um weggeworfen zu werden.
+ *
+ * Er nimmt bewusst wenig Platz: Der Tisch trägt schon fünf Dokumente, eine
+ * Lupe, zwei Stempel und ein Kissen. Angefasst wird ohnehin nicht der Apparat,
+ * sondern die Nummernliste, die daneben aufgeht.
+ */
+
+import { useEffect, useRef, useState } from 'react'
+import { nummernFuer, auskunft, ANRUFE_PRO_TAG } from '../game/telefon.js'
+import { spiele } from '../game/audio.js'
+
+const KLINGEL_MS = 2200
+
+/** Wählscheibentelefon von schräg oben. */
+function Apparat({ abgehoben }) {
+  return (
+    <svg viewBox="0 0 88 62" width="82" aria-hidden="true">
+      <ellipse cx="44" cy="57" rx="34" ry="5" fill="#000" opacity="0.42" />
+      {/* Grundkörper */}
+      <path d="M 10 46 L 16 22 L 72 22 L 78 46 Z" fill="#2a2f33" />
+      <path d="M 10 46 L 78 46 L 78 50 L 10 50 Z" fill="#1c2124" />
+      {/* Wählscheibe */}
+      <circle cx="44" cy="35" r="12" fill="#3b4247" />
+      <circle cx="44" cy="35" r="8.5" fill="#22272a" />
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+        const w = (i / 8) * Math.PI * 2 - 1.9
+        return (
+          <circle
+            key={i}
+            cx={44 + Math.cos(w) * 10.4}
+            cy={35 + Math.sin(w) * 10.4}
+            r="1.5"
+            fill="#141819"
+          />
+        )
+      })}
+      {/* Hörer – liegt quer auf, oder fehlt, weil er am Ohr ist */}
+      {!abgehoben && (
+        <g>
+          <rect x="12" y="8" width="64" height="11" rx="5.5" fill="#343a3f" />
+          <rect x="10" y="6" width="16" height="15" rx="4" fill="#3d4449" />
+          <rect x="62" y="6" width="16" height="15" rx="4" fill="#3d4449" />
+          <rect x="14" y="10" width="8" height="7" rx="2" fill="#22272a" />
+          <rect x="66" y="10" width="8" height="7" rx="2" fill="#22272a" />
+        </g>
+      )}
+      {/* Kringelkabel */}
+      <path
+        d="M 78 30 q 7 3 3 7 q -4 4 3 7 q 6 3 2 7"
+        fill="none"
+        stroke="#22272a"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+export default function Telefon({ applicant, uebrig, onAnruf }) {
+  const [offen, setOffen] = useState(false)
+  const [klingelt, setKlingelt] = useState(false)
+  const [notiz, setNotiz] = useState(null)
+  const uhr = useRef(null)
+
+  // Jeder neue Vorgang räumt den Zettel ab: Eine Auskunft über den
+  // Vorletzten neben den Papieren des Nächsten wäre schlimmer als keine.
+  useEffect(() => {
+    setNotiz(null)
+    setOffen(false)
+    setKlingelt(false)
+    clearTimeout(uhr.current)
+  }, [applicant.id])
+
+  useEffect(() => () => clearTimeout(uhr.current), [])
+
+  const anrufen = (nummer) => {
+    if (uebrig <= 0 || klingelt) return
+    setOffen(false)
+    setKlingelt(true)
+    spiele('waehlen')
+    onAnruf()
+    uhr.current = setTimeout(() => {
+      setKlingelt(false)
+      setNotiz(auskunft(applicant, nummer.id))
+    }, KLINGEL_MS)
+  }
+
+  const nummern = nummernFuer(applicant)
+  const leer = uebrig <= 0
+
+  return (
+    <div className="pointer-events-none absolute bottom-5 left-5 z-30 flex items-end gap-4">
+      <div className="pointer-events-auto flex flex-col items-center gap-1">
+        <button
+          onClick={() => {
+            if (klingelt) return
+            spiele('klick')
+            setOffen((o) => !o)
+          }}
+          disabled={klingelt}
+          aria-label="Telefon"
+          className="transition-transform duration-150 hover:-translate-y-1 disabled:opacity-70"
+          style={{ cursor: klingelt ? 'default' : 'pointer' }}
+        >
+          <Apparat abgehoben={klingelt} />
+        </button>
+        <span
+          className="font-form text-[9px] uppercase tracking-[0.14em]"
+          style={{ color: leer ? 'var(--color-ink-500)' : 'var(--color-brass)' }}
+        >
+          {klingelt ? 'Es klingelt …' : `${uebrig} von ${ANRUFE_PRO_TAG}`}
+        </span>
+      </div>
+
+      {/* Nummernliste */}
+      {offen && !klingelt && (
+        <div className="pointer-events-auto mb-6 w-[236px] rounded-sm border border-brass/40 bg-desk-900/95 p-2 shadow-xl">
+          <p className="mb-1 px-1 font-form text-[9px] uppercase tracking-[0.16em] text-brass">
+            Rückfrage
+          </p>
+          {leer ? (
+            <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
+              Für heute keine Rückfragen mehr. Zwei am Tag, so steht es in der
+              Dienstanweisung.
+            </p>
+          ) : (
+            nummern.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => anrufen(n)}
+                className="block w-full rounded-sm px-1 py-[5px] text-left transition hover:bg-desk-700"
+              >
+                <span className="block font-form text-[11px] leading-tight text-paper-200">
+                  {n.name}
+                </span>
+                <span className="block font-form text-[9px] text-paper-400/60">{n.zweck}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Notizzettel mit der Auskunft */}
+      {notiz && (
+        <div
+          className="animate-ink-settle mb-6 w-[258px] -rotate-1 border-l-2 px-3 py-2 shadow-lg"
+          style={{
+            background: 'var(--color-paper-200)',
+            borderColor: notiz.ergiebig ? 'var(--color-stamp-deny)' : 'var(--color-ink-500)',
+          }}
+        >
+          <p className="font-form text-[8px] uppercase tracking-[0.16em] text-ink-500">
+            {notiz.sprecher}
+          </p>
+          <p className="mt-[3px] text-[12px] leading-snug text-ink-900">„{notiz.text}"</p>
+        </div>
+      )}
+    </div>
+  )
+}
