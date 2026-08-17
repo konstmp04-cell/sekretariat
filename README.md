@@ -564,6 +564,62 @@ auffällige Merkmale, bis Tag 10 eines, danach nur noch ein feines.
 Damit prüft das Spiel erstmals eine andere Wahrnehmung als „zwei Textfelder
 vergleichen" – und die aufwendig gebauten Porträts bekommen eine Aufgabe.
 
+### Junge Regeln kommen häufiger dran
+
+Eine Auszählung über alle zwölf Tage brachte eine Schieflage ans Licht, die
+beim Spielen nur als Gefühl auftaucht:
+
+| Regel | ab Tag | vorher | nachher |
+| --- | --- | --- | --- |
+| Unterschrift prüfen | 1 | 7× | 6× |
+| Ausstellungsdatum | 2 | **16×** | 10× |
+| Attestpflicht | 3 | 7× | 12× |
+| Namensabgleich | 5 | 7× | 8× |
+| Klausurtage | 6 | 5× | 3× |
+| Lichtbildabgleich | 7 | **2×** | 5× |
+| Attestzeitraum | 9 | 2× | 2× |
+| Sperrvermerk | 11 | 2× | 2× |
+
+**Der Lichtbildabgleich kam in 132 Vorgängen zweimal vor.** Dahinter steckt
+das gesamte Porträtsystem samt drei Schwierigkeitsstufen; der Spieler lernte
+die Regel an Tag 7 und begegnete ihr in den restlichen sechs Tagen ein
+einziges Mal.
+
+Die Ursache war strukturell, nicht zufällig: Die Verstoßart wurde
+gleichverteilt aus den *verfügbaren* Regeln gezogen, und eine Regel ab Tag 2
+hat elf Tage lang Gelegenheiten, eine ab Tag 11 hat zwei. Die frühen fressen
+alles auf – ausgerechnet die neuen, um die sich der jeweilige Tag dreht,
+werden zur Rarität.
+
+Gezogen wird jetzt gewichtet: `2 + 5 / (1 + Tag − abTag)`. Am Einführungstag
+siebenfach, danach fallend gegen zwei. Alte Regeln verschwinden nicht, sie
+treten zurück.
+
+Die beiden Zahlen sind ausgemessen, nicht geschätzt. Ein erster Versuch mit
+`1 + 6/Alter` kippte die Verteilung ins Gegenteil: „Unterschrift prüfen", die
+Regel des ersten Tages, fiel auf sechs Fälle, von denen vier Milan gehörten –
+die Kernmechanik des Spiels kam außerhalb des Drehbuchs zweimal vor. Von fünf
+durchgerechneten Kombinationen liefert `2 + 5` die gleichmäßigste Verteilung.
+
+Was übrig bleibt, ist keine Schieflage mehr, sondern Stichprobe: Bei rund 44
+Verstößen auf acht Regeln entfallen auf jede etwa fünf Fälle, und bei fünf
+Fällen schwankt es eben.
+
+### Dreißig Gründe statt zehn
+
+Dieselbe Auszählung: zehn Krankheitsgründe auf 132 Vorgänge, „Magen-Darm-
+Infekt" neunzehnmal. Ab Tag 6 hatte man jeden zweimal gelesen. Jetzt sind es
+dreißig, der häufigste kommt achtmal vor. Die Verteilung der Dauer bleibt
+erhalten – an `tage` hängen gleich drei Regeln.
+
+### Zufallsschüler dürfen nicht heißen wie die Stammgäste
+
+In der Warteschlange von Tag 12 standen „Frieda Petrov" und „Theo Sander" –
+unmittelbar vor Milan Petrovs Abschied und Emil Sanders letztem Auftritt. Ein
+Nachname, den man mit einer Figur verbindet, an einem Fremden gelesen,
+verwässert genau den Moment, auf den zwölf Tage zulaufen. Die Vor- und
+Nachnamen der drei Figuren sind deshalb aus den Zufallstöpfen ausgenommen.
+
 ### Fehlerquote wird gesetzt, nicht gewürfelt
 
 `buildQueue()` legt vorab fest, wie viele Verstöße ein Tag enthält. Bei rein

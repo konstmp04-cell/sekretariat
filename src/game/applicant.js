@@ -11,7 +11,7 @@ import { makeRng, hashSeed, rngHelpers } from './rng.js'
 import { VERSTOSS, REGELN, neueRegeln } from './regeln.js'
 import { makeFace, abweichendesFoto, fotoAbweichungFuerTag } from './face.js'
 import { forgeryStrengthForDay } from './signature.js'
-import { auftritteAmTag } from './figuren.js'
+import { auftritteAmTag, FIGUREN } from './figuren.js'
 import { anweisungFuerTag, passendMachen } from './anweisungen.js'
 import { kuriositaetAmTag, kuriosumAnwenden, KURIOSUM } from './kuriositaeten.js'
 
@@ -36,6 +36,17 @@ const NACHNAMEN = [
   'Lindner', 'Petrov', 'Yilmaz', 'Ostermann', 'Hofer', 'Reinke', 'Wagner', 'Sturm',
   'Dietrich', 'Falk', 'Berger', 'Novak', 'Abdi', 'Krause', 'Weiss', 'Marek',
 ]
+
+/**
+ * Namen der Stammgäste bleiben dem Zufall verwehrt.
+ *
+ * In der Warteschlange von Tag 12 standen „Frieda Petrov" und „Theo Sander" –
+ * unmittelbar vor Milan Petrovs Abschied und Emil Sanders letztem Auftritt.
+ * Ein Nachname, den man mit einer Figur verbindet, an einem Fremden gelesen,
+ * verwässert genau den Moment, auf den zwölf Tage zulaufen.
+ */
+const FIGURENNAMEN = new Set(FIGUREN.flatMap((f) => [f.vorname, f.nachname]))
+const ohneFiguren = (liste) => liste.filter((n) => !FIGURENNAMEN.has(n))
 
 export const KLASSEN = ['7a', '7b', '8a', '8b', '8c', '9a', '9b', '10a', '10b', '10c']
 
@@ -89,6 +100,16 @@ const PRAXEN = [
   { name: 'Facharztzentrum Nordstadt', zusatz: 'HNO-Heilkunde', arzt: 'Dr. med. M. Özdemir' },
 ]
 
+/**
+ * Krankheitsgründe.
+ *
+ * Ausgezählt über alle zwölf Tage kam jeder der ursprünglich zehn Gründe rund
+ * neunmal vor, „Magen-Darm-Infekt" neunzehnmal – ab Tag 6 hatte man jeden
+ * zweimal gelesen. Die Zahl der Einträge ist deshalb verdreifacht. Die
+ * Verteilung der Dauer bleibt dabei erhalten (viele kurze, wenige lange),
+ * weil an `tage` gleich drei Regeln hängen: Attestpflicht, Attestzeitraum und
+ * die Berechnung der Fehltage.
+ */
 const GRUENDE = [
   { text: 'Magen-Darm-Infekt', tage: 2, glaubwuerdig: true },
   { text: 'Fieber und Halsschmerzen', tage: 3, glaubwuerdig: true },
@@ -100,6 +121,26 @@ const GRUENDE = [
   { text: 'Umzug der Familie', tage: 1, glaubwuerdig: false },
   { text: 'Arzttermin beim Facharzt', tage: 1, glaubwuerdig: true },
   { text: 'Verstauchter Knöchel', tage: 3, glaubwuerdig: true },
+  { text: 'Bindehautentzündung', tage: 2, glaubwuerdig: true },
+  { text: 'Mittelohrentzündung', tage: 3, glaubwuerdig: true },
+  { text: 'Kieferorthopädie', tage: 1, glaubwuerdig: true },
+  { text: 'Fieberschub', tage: 2, glaubwuerdig: true },
+  { text: 'Nach einem Sturz auf dem Schulweg', tage: 1, glaubwuerdig: true },
+  { text: 'Angina', tage: 4, glaubwuerdig: true },
+  { text: 'Impftermin', tage: 1, glaubwuerdig: true },
+  { text: 'Windpocken', tage: 5, glaubwuerdig: true },
+  { text: 'Erkältung mit Fieber', tage: 3, glaubwuerdig: true },
+  { text: 'Todesfall in der Familie', tage: 2, glaubwuerdig: true },
+  { text: 'Hausärztliche Kontrolle', tage: 1, glaubwuerdig: true },
+  { text: 'Rückenbeschwerden', tage: 2, glaubwuerdig: false },
+  { text: 'Behördentermin mit den Eltern', tage: 1, glaubwuerdig: false },
+  { text: 'Allergische Reaktion', tage: 1, glaubwuerdig: true },
+  { text: 'Magenverstimmung', tage: 1, glaubwuerdig: true },
+  { text: 'Krankenhausbesuch bei der Mutter', tage: 1, glaubwuerdig: false },
+  { text: 'Verdacht auf Grippe', tage: 3, glaubwuerdig: true },
+  { text: 'Zahnbehandlung unter Betäubung', tage: 1, glaubwuerdig: true },
+  { text: 'Fahrradunfall', tage: 2, glaubwuerdig: true },
+  { text: 'Bronchitis', tage: 4, glaubwuerdig: true },
 ]
 
 // {von} und {der} werden durch das tatsächlich unterzeichnende Elternteil
@@ -136,8 +177,8 @@ export function makeApplicant(day, index, verstoss = VERSTOSS.KEINER, figur = nu
   // Auch bei einer festen Figur werden alle Zufallswerte gezogen: So bleibt
   // der Strom für die übrigen Schüler des Tages unverändert.
   const gewuerfeltW = chance(0.5)
-  const gVorname = pick(gewuerfeltW ? VORNAMEN_W : VORNAMEN_M)
-  const gNachname = pick(NACHNAMEN)
+  const gVorname = pick(ohneFiguren(gewuerfeltW ? VORNAMEN_W : VORNAMEN_M))
+  const gNachname = pick(ohneFiguren(NACHNAMEN))
   const gKlasse = pick(KLASSEN)
 
   const weiblich = figur ? figur.weiblich : gewuerfeltW
@@ -302,7 +343,50 @@ export function buildQueue(day, laenge = 8) {
 
   const fehlerQuote = Math.min(0.45, 0.18 + day * 0.035)
   // Welche Verstöße heute möglich sind, steht an den Regeln selbst.
-  const verfuegbar = REGELN.filter((r) => r.abTag <= day).map((r) => r.id)
+  const verfuegbar = REGELN.filter((r) => r.abTag <= day)
+
+  /**
+   * Junge Regeln kommen häufiger dran als alte.
+   *
+   * Vorher wurde gleichverteilt gezogen – mit einem Ergebnis, das erst eine
+   * Auszählung über alle zwölf Tage zutage gefördert hat:
+   *
+   *   Ausstellungsdatum (ab Tag 2)   16×
+   *   Lichtbildabgleich (ab Tag 7)    2×
+   *   Sperrvermerk      (ab Tag 11)   2×
+   *
+   * Der Grund ist strukturell: Eine Regel ab Tag 2 hat elf Tage lang
+   * Gelegenheiten, eine ab Tag 11 hat zwei. Die frühen fressen alles auf –
+   * und ausgerechnet die neu eingeführten, um die sich der ganze Tag dreht,
+   * werden zur Rarität. Der Spieler lernte den Lichtbildabgleich an Tag 7 und
+   * begegnete ihm in den restlichen sechs Tagen ein einziges Mal.
+   *
+   * Das Gewicht fällt mit dem Alter der Regel, ohne je auf null zu gehen:
+   * am Einführungstag siebenfach, nach einem Tag viereinhalbfach, danach
+   * gegen zwei. Alte Regeln verschwinden also nicht, sie treten nur zurück –
+   * vergessen soll man keine.
+   *
+   * Die Zahlen 2 und 5 sind ausgemessen, nicht geschätzt. Ein erster Versuch
+   * mit 1 und 6 kippte die Verteilung ins Gegenteil: „Unterschrift prüfen",
+   * die Regel des ersten Tages, kam auf sechs Fälle, von denen vier Milan
+   * gehörten. Von fünf durchgerechneten Kombinationen liefert diese die
+   * gleichmäßigste Verteilung über alle acht Regeln.
+   *
+   * Restliche Ungleichheit ist keine Schieflage mehr, sondern Stichprobe:
+   * Bei rund 44 Verstößen auf acht Regeln entfallen auf jede etwa fünf Fälle,
+   * und bei fünf Fällen schwankt es eben.
+   */
+  const gewicht = (regel) => 2 + 5 / (1 + day - regel.abTag)
+
+  const zieheVerstoss = () => {
+    const summe = verfuegbar.reduce((s, r) => s + gewicht(r), 0)
+    let wurf = rng() * summe
+    for (const r of verfuegbar) {
+      wurf -= gewicht(r)
+      if (wurf <= 0) return r.id
+    }
+    return verfuegbar[verfuegbar.length - 1].id
+  }
 
   // Die Anzahl wird gesetzt, nicht gewürfelt.
   //
@@ -357,7 +441,7 @@ export function buildQueue(day, laenge = 8) {
   }
   for (const stelle of offen) {
     if (fehlerZahl() >= sollFehler) break
-    zuteilung[stelle].verstoss = pick(verfuegbar)
+    zuteilung[stelle].verstoss = zieheVerstoss()
   }
 
   // Heute neu eingeführte Regeln müssen mindestens einmal vorkommen.
