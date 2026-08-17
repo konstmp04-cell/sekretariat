@@ -15,44 +15,59 @@ import { spiele } from '../game/audio.js'
 
 const KLINGEL_MS = 2200
 
-/** Wählscheibentelefon von schräg oben. */
+/**
+ * Wählscheibentelefon von schräg oben.
+ *
+ * Der erste Entwurf war anthrazit (#2a2f33) auf einer Tischplatte in #1f2326 –
+ * ein Helligkeitsunterschied von elf Stufen. Auf dem Papier ein Telefon, in
+ * der Praxis ein dunkler Fleck auf dunklem Holz, den man beim Spielen schlicht
+ * übersieht. Ein Werkzeug, das man suchen muss, ist keins.
+ *
+ * Jetzt helles Bakelit (#4e585e, Abstand rund 52 Stufen) und ein Messingring
+ * um die Wählscheibe – dasselbe Messing wie an Stempeln und Rahmen, damit der
+ * Apparat als bedienbares Gerät liest und nicht als Dekoration.
+ */
 function Apparat({ abgehoben }) {
   return (
     <svg viewBox="0 0 88 62" width="82" aria-hidden="true">
       <ellipse cx="44" cy="57" rx="34" ry="5" fill="#000" opacity="0.42" />
-      {/* Grundkörper */}
-      <path d="M 10 46 L 16 22 L 72 22 L 78 46 Z" fill="#2a2f33" />
-      <path d="M 10 46 L 78 46 L 78 50 L 10 50 Z" fill="#1c2124" />
-      {/* Wählscheibe */}
-      <circle cx="44" cy="35" r="12" fill="#3b4247" />
-      <circle cx="44" cy="35" r="8.5" fill="#22272a" />
+      {/* Grundkörper: obere Fläche heller als die Schräge, sonst wirkt der
+          Apparat flach aufgemalt statt aufgestellt. */}
+      <path d="M 10 46 L 16 22 L 72 22 L 78 46 Z" fill="#4e585e" />
+      <path d="M 16 22 L 72 22 L 70 27 L 18 27 Z" fill="#5c676e" />
+      <path d="M 10 46 L 78 46 L 78 50 L 10 50 Z" fill="#333b40" />
+      {/* Wählscheibe mit Messingring */}
+      <circle cx="44" cy="35" r="12" fill="var(--color-brass)" opacity="0.85" />
+      <circle cx="44" cy="35" r="10.2" fill="#3a4247" />
+      <circle cx="44" cy="35" r="4.5" fill="#20262a" />
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
         const w = (i / 8) * Math.PI * 2 - 1.9
         return (
           <circle
             key={i}
-            cx={44 + Math.cos(w) * 10.4}
-            cy={35 + Math.sin(w) * 10.4}
+            cx={44 + Math.cos(w) * 7.2}
+            cy={35 + Math.sin(w) * 7.2}
             r="1.5"
-            fill="#141819"
+            fill="#12161a"
           />
         )
       })}
       {/* Hörer – liegt quer auf, oder fehlt, weil er am Ohr ist */}
       {!abgehoben && (
         <g>
-          <rect x="12" y="8" width="64" height="11" rx="5.5" fill="#343a3f" />
-          <rect x="10" y="6" width="16" height="15" rx="4" fill="#3d4449" />
-          <rect x="62" y="6" width="16" height="15" rx="4" fill="#3d4449" />
-          <rect x="14" y="10" width="8" height="7" rx="2" fill="#22272a" />
-          <rect x="66" y="10" width="8" height="7" rx="2" fill="#22272a" />
+          <rect x="12" y="8" width="64" height="11" rx="5.5" fill="#59636a" />
+          <rect x="14" y="8" width="60" height="3" rx="1.5" fill="#6d7880" />
+          <rect x="10" y="6" width="16" height="15" rx="4" fill="#616c73" />
+          <rect x="62" y="6" width="16" height="15" rx="4" fill="#616c73" />
+          <rect x="14" y="10" width="8" height="7" rx="2" fill="#262d31" />
+          <rect x="66" y="10" width="8" height="7" rx="2" fill="#262d31" />
         </g>
       )}
       {/* Kringelkabel */}
       <path
         d="M 78 30 q 7 3 3 7 q -4 4 3 7 q 6 3 2 7"
         fill="none"
-        stroke="#22272a"
+        stroke="#3d454a"
         strokeWidth="2.6"
         strokeLinecap="round"
       />
