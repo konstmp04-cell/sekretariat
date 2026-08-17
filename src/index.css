@@ -136,16 +136,28 @@ body {
   animation: rand-schein 900ms ease-out both;
 }
 
-/* Anmarsch: von der Warteschlange links zum Schalterfenster in der Mitte.
+/* Anmarsch: vom vorderen Ende der Warteschlange zum Schalterfenster.
+ *
  * Linear und ohne Beschleunigung – jemand, der zum Schalter geht, holt weder
- * Schwung noch bremst er ab, und eine weiche Kurve läse sich als Schweben. */
+ * Schwung noch bremst er ab, und eine weiche Kurve läse sich als Schweben.
+ *
+ * Die Strecke ist kurz gehalten, und das ist keine Bequemlichkeit, sondern
+ * Notwendigkeit. Der erste Entwurf ließ die Figur vom linken Bildrand in
+ * 780 ms bis zur Mitte laufen: 614 Pixel, also 787 Pixel je Sekunde, verteilt
+ * auf zweieinhalb Schritte. Damit legte sie je Schritt 236 Pixel zurück –
+ * fünfzehn Körperbreiten. Das liest sich nicht als Gehen, sondern als
+ * Schlittern.
+ *
+ * Jetzt sind es 224 Pixel in 2 Sekunden, verteilt auf gut fünf Schritte:
+ * rund 42 Pixel je Schritt, also zweieinhalb Körperbreiten. Damit die Strecke
+ * so kurz sein kann, steht die Warteschlange dichter am Fenster. */
 @keyframes anmarsch {
-  from { left: 3rem; }
+  from { left: calc(50% - 312px); }
   to { left: calc(50% - 88px); }
 }
 
 .animate-anmarsch {
-  animation: anmarsch 780ms linear both;
+  animation: anmarsch 2000ms linear both;
 }
 
 .animate-paper-in {

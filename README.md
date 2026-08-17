@@ -415,6 +415,24 @@ Papiere und ließe den Spieler warten – bei 132 Vorgängen dieselbe Rechnung w
 beim Stempel, der nicht gezogen werden muss. Die Dokumente liegen deshalb vom
 ersten Bild an auf dem Tisch; verzögert wird das Porträt, nicht das Spiel.
 
+### Wie schnell jemand geht
+
+Der erste Einbau ließ die Figur vom linken Bildrand in 780 ms zur Mitte
+laufen. Nachgerechnet: 614 Pixel in 0,78 Sekunden, also 787 Pixel je Sekunde,
+verteilt auf zweieinhalb Schritte – **236 Pixel je Schritt, fünfzehn
+Körperbreiten**. Das liest sich nicht als Gehen, sondern als Schlittern.
+
+| | Strecke | Tempo | Schritte | je Schritt |
+| --- | --- | --- | --- | --- |
+| erster Einbau | 614 px | 787 px/s | 2,6 | 236 px · 15 Körperbreiten |
+| jetzt | 224 px | 112 px/s | 5,3 | 43 px · 2,7 Körperbreiten |
+
+Beides musste sich ändern: langsamer allein hätte den Anmarsch quälend lang
+gemacht, kürzer allein hätte ihn kaum sichtbar. Damit die Strecke so kurz sein
+darf, steht die Warteschlange dichter am Fenster – und in umgekehrter
+Richtung aufgereiht, damit der Nächste ganz vorn steht und der Anmarsch genau
+dort beginnt, wo er eben noch gewartet hat.
+
 ### Der Laufzyklus
 
 Vier handgesetzte Bilder, 8 × 17 Pixel, dieselbe Symbolschrift wie die

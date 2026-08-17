@@ -31,8 +31,13 @@ import LaufFigur from './LaufFigur.jsx'
 import { makeFace } from '../game/face.js'
 import { hashSeed } from '../game/rng.js'
 
-/** Wie lange der Anmarsch dauert. */
-export const ANMARSCH_MS = 780
+/**
+ * Wie lange der Anmarsch dauert.
+ *
+ * Muss mit der Dauer der Bildfolge `anmarsch` in index.css übereinstimmen –
+ * dort läuft die Strecke, hier wartet das Porträt.
+ */
+export const ANMARSCH_MS = 2000
 
 /** Ein Mensch, der nur vorbeigeht. */
 function Passant({ face, nachLinks, dauer, onFertig }) {
@@ -99,8 +104,10 @@ export default function Flur({ wartende, person, index, angekommen }) {
         <Passant key={p.id} {...p} onFertig={() => entfernen(p.id)} />
       ))}
 
-      {/* Wartende: stehen links und sehen zum Schalter. */}
-      <div className="pointer-events-none absolute bottom-1 left-8 flex items-end gap-5">
+      {/* Wartende: stehen zum Fenster hin aufgereiht.
+          Umgekehrte Richtung, damit der Nächste ganz vorn steht – also rechts,
+          dem Schalter am nächsten. Genau von dort startet der Anmarsch. */}
+      <div className="pointer-events-none absolute bottom-1 left-[calc(50%-436px)] flex flex-row-reverse items-end gap-5">
         {wartende.map((f, i) => (
           <span key={f.id} style={{ opacity: 0.75 - i * 0.13 }}>
             <LaufFigur face={f.face} px={2} geht={false} />
@@ -115,7 +122,7 @@ export default function Flur({ wartende, person, index, angekommen }) {
           className="pointer-events-none absolute bottom-1 animate-anmarsch"
           style={{ left: 0 }}
         >
-          <LaufFigur face={person} px={2} tempo={150} />
+          <LaufFigur face={person} px={2} tempo={190} />
         </div>
       )}
     </>
