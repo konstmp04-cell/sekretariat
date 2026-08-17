@@ -10,8 +10,22 @@
 
 import Paper from './Paper.jsx'
 import Signature from './Signature.jsx'
+import { ZUSTAND } from '../game/zustand.js'
 
 const MONAT = 'März'
+
+/**
+ * Der bescheinigte Zeitraum als Text.
+ *
+ * Steht hier und nicht zweimal irgendwo, weil die Lupe dieselbe Zeile groß
+ * neu zeichnet. Zwei Fassungen desselben Satzes wären ein Fehler, der erst
+ * auffällt, wenn jemand unter dem Glas etwas anderes liest als daneben.
+ */
+export function zeitraumText(at) {
+  return at.von === at.bis
+    ? `am ${at.von}. ${MONAT}`
+    : `vom ${at.von}. bis ${at.bis}. ${MONAT}`
+}
 
 /** Praxisstempel: rund, blau, ungleichmäßig aufgetragen. */
 function Praxisstempel({ praxis }) {
@@ -70,12 +84,69 @@ function Praxisstempel({ praxis }) {
   )
 }
 
-export default function Attest({ applicant: a }) {
+/**
+ * Der Wasserschaden.
+ *
+ * Zwei Lagen, die zusammen erst „nass gewesen" ergeben: der bräunliche Rand
+ * eines eingetrockneten Flecks, und darüber die weggewaschene Tinte. Nur der
+ * Rand allein sähe aus wie Kaffee – den gibt es auf diesen Blättern ohnehin
+ * schon –, nur die verlaufene Schrift allein sähe nach Druckfehler aus.
+ */
+function Wasserfleck({ seed }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <defs>
+          <filter id={`nass-${seed}`}>
+            <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed={seed % 90} result="w" />
+            <feDisplacementMap in="SourceGraphic" in2="w" scale="26" />
+          </filter>
+        </defs>
+        {/* Die Ränder eines eingetrockneten Flecks: außen dunkel, innen fast
+            nichts – dort ist die Farbe mitgewandert und am Rand liegengeblieben. */}
+        <g filter={`url(#nass-${seed})`} style={{ mixBlendMode: 'multiply' }}>
+          <ellipse cx="52%" cy="63%" rx="43%" ry="15%" fill="rgb(150 118 62 / 0.10)" />
+          <ellipse
+            cx="52%"
+            cy="63%"
+            rx="43%"
+            ry="15%"
+            fill="none"
+            stroke="rgb(126 96 44 / 0.30)"
+            strokeWidth="3"
+          />
+          <ellipse
+            cx="49%"
+            cy="65%"
+            rx="30%"
+            ry="10%"
+            fill="none"
+            stroke="rgb(126 96 44 / 0.18)"
+            strokeWidth="2"
+          />
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+export default function Attest({ applicant: a, animiert = true, gefuegt = true }) {
   const at = a.attest
   if (!at) return null
 
+  const nass = a.zustand === ZUSTAND.NASS
+  // Auf einer losen Risshälfte steht der Zeitraum nicht – also kann ihn dort
+  // auch keine Lupe hervorholen.
+  const lesbar = a.zustand !== ZUSTAND.ZERRISSEN || gefuegt
+
   return (
-    <Paper seed={a.seed + 55} width={302} tilt={a.tilt * -1.4} className="p-5">
+    <Paper
+      seed={a.seed + 55}
+      width={302}
+      tilt={a.tilt * -1.4}
+      className="p-5"
+      animate={animiert}
+    >
       <div className="mb-3 border-b-2 border-ink-900/60 pb-2">
         <p className="font-form text-[12px] font-bold uppercase tracking-[0.1em] text-ink-900">
           {at.praxis.name}
@@ -95,10 +166,22 @@ export default function Attest({ applicant: a }) {
       <p className="mb-4 font-form text-[12px] leading-relaxed text-ink-700">
         war aus gesundheitlichen Gründen schulunfähig
         <br />
-        <span className="font-bold text-ink-900">
-          {at.von === at.bis
-            ? `am ${at.von}. ${MONAT}`
-            : `vom ${at.von}. bis ${at.bis}. ${MONAT}`}
+        {/* Das Feld, um das sich §7 dreht – und deshalb dasjenige, das der
+            Riss trennt und der Wasserfleck frisst. Es trägt ein Lupenziel:
+            Unter dem Glas stehen die Striche wieder da, die die Tinte
+            verlassen haben. Das ist kein Trostpreis, sondern der eine von
+            zwei Wegen, die aus dem Schaden herausführen – der andere ist der
+            Anruf bei der Praxis, und der kostet einen von zweien. */}
+        <span
+          className="inline-block font-bold text-ink-900"
+          data-lupe={lesbar ? 'attest-zeitraum' : undefined}
+          style={
+            nass
+              ? { filter: 'blur(2px) contrast(0.55)', opacity: 0.74, letterSpacing: '0.04em' }
+              : undefined
+          }
+        >
+          {zeitraumText(at)}
         </span>
       </p>
 
@@ -116,6 +199,10 @@ export default function Attest({ applicant: a }) {
           <Praxisstempel praxis={at.praxis} />
         </div>
       </div>
+
+      {/* Zuletzt, damit der Fleck ÜBER der Schrift liegt. Ein Wasserrand, den
+          der Text durchstößt, wäre ein Muster unter dem Papier. */}
+      {nass && <Wasserfleck seed={a.seed} />}
     </Paper>
   )
 }

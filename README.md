@@ -254,6 +254,90 @@ machte aus einer defekten Leitung eine Zumutung des Rektorats.
 Drei auf zwölf Tage, nicht mehr. Eine Störung, die jeden zweiten Tag kommt,
 ist keine mehr, sondern der Normalzustand.
 
+## Nasse und zerrissene Atteste
+
+Nicht jedes Attest kommt als sauberes Blatt über den Tresen. Manche waren in
+einer Jackentasche, als es regnete; manche sind gerissen. Die Frage bei so
+etwas entscheidet alles:
+
+> Erzeugt der Zustand eine **Entscheidung** oder nur **Arbeit**?
+
+Ein Trocknungsvorgang, bei dem man dreißig Sekunden wartet, ist Arbeit. Ein
+Klebeband-Werkzeug, mit dem man Kanten aneinanderpinselt, ist Arbeit – und
+dazu ein viertes Objekt auf einem Schreibtisch, der schon voll ist. Beides
+wäre bei 132 Vorgängen eine Strafe, kein Ereignis.
+
+Deshalb die andere Fassung: **Ein beschädigtes Papier verbirgt eine Angabe,
+und die Angabe ist auf zwei Wegen zu bekommen.** Der Zustand fügt keinen
+Handgriff hinzu, er nimmt eine Selbstverständlichkeit weg – man kann das Blatt
+nicht mehr einfach lesen.
+
+**Nass.** Der bescheinigte Zeitraum ist verlaufen; darüber liegt der Rand
+eines eingetrockneten Flecks. Man sieht, dass dort etwas steht, und liest es
+nicht. Zwei Auswege: Die Lupe holt die Striche unter der zerlaufenen Tinte
+hervor, oder die Praxis liest den Zeitraum am Telefon vor – und das kostet
+einen von zwei Anrufen.
+
+**Zerrissen.** Das Attest kommt in zwei Stücken, und der Riss läuft
+**senkrecht**. Das ist der ganze Trick: Ein waagerechter Riss ließe die
+Zeitraumzeile unversehrt und wäre bloß Verzierung. Senkrecht trennt er sie
+mitten durch – links steht „vom 15. b", rechts „is 17. März", und keine
+Hälfte sagt etwas aus. Man zieht die Stücke aneinander, sie rasten ein, fertig.
+Kein Klebeband, kein Werkzeug, keine Wartezeit.
+
+### Der Riss läuft bei 33 %, nicht in der Mitte
+
+Ausgemessen, nicht geschätzt. Der erste Entwurf riss bei 47 % – mittig, wie
+ein Riss eben aussieht. Auf dem Bildschirm stand danach auf dem **linken**
+Stück „vom 15. bis 17." vollständig zu lesen: Die Zeile ist bei 12 px
+Schriftgröße nur rund 133 px breit, der Schnitt kam erst dahinter. Der Riss
+war reine Zierde – man konnte den Zeitraum ablesen, ohne irgendetwas
+zusammenzuschieben.
+
+Bei 33 % fällt der Schnitt rund 60 bis 90 px hinter den Textanfang, also
+mitten in die Zeitangabe. Jede Hälfte nennt dann eine Zahl und verschweigt,
+wofür sie steht.
+
+### Was die Lupe auf einer losen Hälfte zeigt: nichts
+
+Die Lupe vergrößert keine Bildpunkte, sie zeichnet ihren Inhalt neu. Ohne
+Gegenmaßnahme läse man unter dem Glas den vollständigen Zeitraum von einer
+Hälfte ab, auf der er physisch gar nicht steht – der Riss wäre umsonst.
+Solange die Stücke getrennt liegen, trägt die Zeile deshalb kein Lupenziel.
+Nach dem Zusammenfügen wieder.
+
+### Vier Tage, und die Reihenfolge ist Absicht
+
+| Tag | Zustand | Fall |
+| --- | --- | --- |
+| 4 | nass | einwandfrei |
+| 6 | zerrissen | einwandfrei – und ausgerechnet der Tag, an dem die Lupe verliehen ist. Zusammenschieben braucht kein Werkzeug. |
+| 9 | nass | Attestzeitraum stimmt nicht – der Tag, an dem §7 neu dazukommt. Der Fleck sitzt genau auf dem Feld, um das es geht. |
+| 11 | zerrissen | Attestzeitraum stimmt nicht – der Riss trennt „von" und „bis". |
+
+Erst zwei saubere Fälle, dann zwei faule. Wäre es umgekehrt, lernte man
+„beschädigt heißt Verstoß" und bräuchte gar nicht mehr hinzusehen; wären alle
+vier sauber, lernte man „beschädigt heißt egal". Beides wäre schlimmer als gar
+keine Beschädigung.
+
+Die Regelprüfung bleibt unberührt: `validate.js` liest weiterhin die
+Dokumentdaten und weiß nicht, ob ein Blatt nass war. Der Zustand ist
+Darstellung und Handhabung, nie Bewertung.
+
+### An Tag 4 gibt es kein Attest, also wird eins nachgereicht
+
+Klingt nach Trickserei, ist die einzig ehrliche Lösung. Ein Attest entsteht
+erst ab drei Fehltagen, und kurze Schichten mit kurzen Fehlzeiten haben
+schlicht keins: An Tag 4 lag genau eines auf dem ganzen Tresen, und das gehörte
+dem letzten Vorgang – der für Sonderfälle gesperrt ist. Ohne Gegenmaßnahme
+fiele der erste Wasserschaden ersatzlos aus, ausgerechnet der, an dem man die
+Sache gefahrlos lernen soll.
+
+Ein einwandfreier Vorgang bekommt deshalb ein Attest, das sämtliche Fehltage
+abdeckt. Das ist nachweislich folgenlos: §3 kann es nur erfüllen, §7 deckt es
+vollständig, §5 ebenso. Es kann keinen Verstoß erzeugen, nur einen verhindern
+– und der Vorgang war ohnehin einwandfrei.
+
 ## Das Telefon
 
 Bis hierher gab es genau zwei Verben: links stempeln, rechts stempeln. Die

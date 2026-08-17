@@ -22,11 +22,40 @@ import { zoomFaktor } from './Buehne.jsx'
 const REST_X = 140
 const REST_Y = 70
 
-export default function Ziehbar({ start, z = 1, onVorn, children }) {
+/**
+ * @param {(pos: {x:number,y:number}) => void} [melde]
+ *   Wird bei jeder Bewegung mit der neuen Lage aufgerufen. Braucht, wer
+ *   wissen muss, wo dieses Blatt gerade liegt – etwa das Gegenstück eines
+ *   zerrissenen Attests.
+ * @param {(pos: {x:number,y:number}) => ({x:number,y:number}|null)} [schnapp]
+ *   Wird beim Loslassen befragt. Gibt sie eine Lage zurück, rastet das Blatt
+ *   dorthin ein. Das Einrasten gehört hierher und nicht in den Aufrufer, weil
+ *   nur hier die tatsächliche Lage steht.
+ * @param {object} [stil]
+ *   Zusätzliche Stilangaben für den Rahmen. Gedacht für `clipPath` und
+ *   `filter`: Ein zerrissenes Blatt muss AM RAHMEN beschnitten werden, nicht
+ *   an seinem Inhalt – sonst bliebe der weggeschnittene Teil ein
+ *   unsichtbares, aber greifbares Rechteck, und man zöge das halbe Attest an
+ *   einer Stelle, an der nichts zu sehen ist.
+ */
+export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, children }) {
   const [pos, setPos] = useState(start)
   const [zieht, setZieht] = useState(false)
   const ref = useRef(null)
   const griff = useRef({ x: 0, y: 0 })
+  // Zusätzlich zum Zustand, weil `hoch` beim Loslassen die AKTUELLE Lage
+  // braucht: Der Rückruf hängt nur an `zieht`, und über den Zustand läse er
+  // die Lage vom Anfang der Bewegung.
+  const jetzt = useRef(start)
+
+  const setzen = useCallback(
+    (p) => {
+      jetzt.current = p
+      setPos(p)
+      melde?.(p)
+    },
+    [melde],
+  )
 
   const runter = useCallback(
     (e) => {
@@ -64,9 +93,9 @@ export default function Ziehbar({ start, z = 1, onVorn, children }) {
       x = Math.max(REST_X - el.offsetWidth, Math.min(eltern.offsetWidth - REST_X, x))
       y = Math.max(0, Math.min(eltern.offsetHeight - REST_Y, y))
 
-      setPos({ x, y })
+      setzen({ x, y })
     },
-    [zieht],
+    [zieht, setzen],
   )
 
   const hoch = useCallback(
@@ -74,8 +103,10 @@ export default function Ziehbar({ start, z = 1, onVorn, children }) {
       if (!zieht) return
       ref.current.releasePointerCapture(e.pointerId)
       setZieht(false)
+      const ziel = schnapp?.(jetzt.current)
+      if (ziel) setzen(ziel)
     },
-    [zieht],
+    [zieht, schnapp, setzen],
   )
 
   return (
@@ -95,6 +126,7 @@ export default function Ziehbar({ start, z = 1, onVorn, children }) {
         transform: zieht ? 'scale(1.025)' : 'none',
         filter: zieht ? 'drop-shadow(0 18px 22px rgb(0 0 0 / 0.5))' : 'none',
         transition: zieht ? 'none' : 'transform 160ms ease-out, filter 160ms ease-out',
+        ...stil,
       }}
     >
       {children}

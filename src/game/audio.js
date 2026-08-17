@@ -143,6 +143,34 @@ function papier(ctx, ziel, t) {
   }
 }
 
+/**
+ * Zwei Rissstücke finden zusammen.
+ *
+ * Zwei Papierlagen, die übereinandergleiten und liegenbleiben – deshalb ein
+ * kurzes Streifen und darunter ein sehr leiser tiefer Absatz, kein Klicken.
+ * Ein hörbares Einrasten machte aus zwei Fetzen Papier zwei Bauteile.
+ *
+ * Bewusst unter dem Pegel des Raschelns: Das Zusammenfügen ist eine
+ * Beiläufigkeit, keine Belohnung. Ein Fanfarenton an dieser Stelle würde die
+ * Handlung wichtiger machen, als sie ist.
+ */
+function naht(ctx, ziel, t) {
+  rauschen(ctx, ziel, t, {
+    dauer: 0.16,
+    freq: 2400,
+    freqEnde: 780,
+    q: 0.6,
+    gain: 0.13,
+  })
+  ton(ctx, ziel, t + 0.04, {
+    form: 'sine',
+    freq: 168,
+    freqEnde: 120,
+    dauer: 0.14,
+    gain: 0.06,
+  })
+}
+
 /** Summer bei Fehlentscheidung – hart, elektrisch, unangenehm. */
 function summer(ctx, ziel, t) {
   const dauer = 0.34
@@ -300,7 +328,7 @@ function waehlen(ctx, ziel, t) {
   }
 }
 
-export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur, waehlen }
+export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur, waehlen, naht }
 
 // --- Wiedergabe ---------------------------------------------------------
 

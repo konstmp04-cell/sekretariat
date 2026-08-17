@@ -15,6 +15,7 @@ import { auftritteAmTag, FIGUREN } from './figuren.js'
 import { anweisungFuerTag, passendMachen } from './anweisungen.js'
 import { kuriositaetAmTag, kuriosumAnwenden, KURIOSUM } from './kuriositaeten.js'
 import { ausgesetzteRegel } from './stoerungen.js'
+import { zustandAmTag, zustandAnwenden } from './zustand.js'
 
 // Nach Geschlecht getrennt, damit die Entschuldigung „meine Tochter Lena"
 // bzw. „mein Sohn Jonas" schreiben kann. Vorher wurde Sohn/Tochter daraus
@@ -242,6 +243,9 @@ export function makeApplicant(day, index, verstoss = VERSTOSS.KEINER, figur = nu
     forgery: 0,
     nervoes: false,
     spruch: '',
+    // Zustand des Attests: null, 'nass' oder 'zerrissen'. Reine Darstellung –
+    // die Regelprüfung sieht dieses Feld nie an.
+    zustand: null,
   }
 
   // --- Verstoß einbauen -------------------------------------------------
@@ -538,6 +542,75 @@ export function buildQueue(day, laenge = 8) {
       kandidaten = stellen(art)
     }
     if (kandidaten.length) kuriosumAnwenden({ ...kur, art }, schlange[pick(kandidaten)])
+  }
+
+  // --- Zustand der Papiere ----------------------------------------------
+  //
+  // An vier Tagen kommt ein Attest nass oder in zwei Stücken über den Tresen.
+  // Dieselben Sperren wie bei der Kuriosität – erster und letzter Vorgang,
+  // Stammgäste, der Betroffene der Anordnung –, und zusätzlich zwei eigene:
+  //
+  //   Es muss überhaupt ein Attest vorliegen. Ein nasses Blatt, das es nicht
+  //   gibt, ist keins.
+  //
+  //   Der Vorgang muss den vorgesehenen Verstoß tragen (oder gar keinen).
+  //   Sonst säße der Fleck über einem Feld, an dem heute nichts hängt,
+  //   während der eigentliche Fehler woanders klar lesbar danebensteht – der
+  //   Zustand wäre dann bloß Dekoration mit Zusatzarbeit.
+  const zu = zustandAmTag(day)
+  if (zu) {
+    const geeignet = (a, i, verstoss) =>
+      i > 0 &&
+      i < laenge - 1 &&
+      !a.figur &&
+      !a.kuriosum &&
+      a.verstoss === verstoss &&
+      !(anw && a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))
+
+    const stellen = (verstoss, bedingung) =>
+      schlange
+        .map((a, i) => (geeignet(a, i, verstoss) && bedingung(a) ? i : -1))
+        .filter((i) => i >= 0)
+
+    const hatAttest = (a) => !!a.attest
+    const ohneAttest = (a) => !a.attest
+    const einer = (liste) => (liste.length ? pick(liste) : null)
+
+    // Zuerst der vorgesehene Fall. Gibt der Tag ihn nicht her, lieber ein
+    // einwandfreier als gar keiner: Der Handgriff soll vorkommen, auch wenn
+    // die Pointe an diesem Tag ausfällt.
+    let stelle = einer(stellen(zu.verstoss, hatAttest))
+    if (stelle === null) stelle = einer(stellen(VERSTOSS.KEINER, hatAttest))
+
+    // Und wenn der Tag überhaupt kein brauchbares Attest hergibt, bekommt ein
+    // einwandfreier Vorgang eines.
+    //
+    // Klingt nach Trickserei, ist aber die einzig ehrliche Lösung: An Tag 4
+    // liegt genau ein Attest auf dem ganzen Tresen, und das gehört dem letzten
+    // Vorgang. Ein Attest entsteht nämlich erst ab drei Fehltagen, und kurze
+    // Schichten mit kurzen Fehlzeiten haben schlicht keins. Ohne diese Zeile
+    // fiele der erste Wasserschaden ersatzlos aus – ausgerechnet der, an dem
+    // man die Sache gefahrlos lernen soll.
+    //
+    // Das nachgereichte Attest deckt sämtliche Fehltage ab und ist damit
+    // nachweislich folgenlos: §3 kann es nur erfüllen, §7 deckt es
+    // vollständig, §5 ebenso. Es kann keinen Verstoß erzeugen, nur einen
+    // verhindern – und der Vorgang war ohnehin einwandfrei.
+    if (stelle === null) {
+      stelle = einer(stellen(VERSTOSS.KEINER, ohneAttest))
+      if (stelle !== null) {
+        const p = pick(PRAXEN)
+        schlange[stelle].attest = {
+          praxis: p,
+          von: schlange[stelle].fehltagVon,
+          bis: schlange[stelle].fehltagBis,
+          ausgestellt: schlange[stelle].fehltagVon,
+          arztSeed: hashSeed(`arzt-${p.arzt}`),
+        }
+      }
+    }
+
+    if (stelle !== null) zustandAnwenden(zu.art, schlange[stelle], pick)
   }
 
   return schlange

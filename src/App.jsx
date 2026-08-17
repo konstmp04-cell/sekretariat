@@ -6,7 +6,7 @@ import { zeileFuer } from './game/figuren.js'
 import { PHASE, reduce, neuerStand, laden, speichern, loeschen } from './game/spielstand.js'
 import ExcuseNote from './components/ExcuseNote.jsx'
 import StudentFile from './components/StudentFile.jsx'
-import Attest from './components/Attest.jsx'
+import Attest, { zeitraumText } from './components/Attest.jsx'
 import Klausurplan from './components/Klausurplan.jsx'
 import Geldschein from './components/Geldschein.jsx'
 import Lupe from './components/Lupe.jsx'
@@ -23,12 +23,14 @@ import DaySummary from './components/DaySummary.jsx'
 import Zeugnis from './components/Zeugnis.jsx'
 import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
+import Zerrissen from './components/Zerrissen.jsx'
 import Flur, { ANMARSCH_MS } from './components/Flur.jsx'
 import Telefon from './components/Telefon.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
 import { lichtDaempfung } from './game/wetter.js'
 import { verfuegbar, STOERUNG } from './game/stoerungen.js'
+import { ZUSTAND } from './game/zustand.js'
 import { spiele, ladeTonEinstellung, raumklangStarten, raumklangStoppen } from './game/audio.js'
 
 ladeTonEinstellung()
@@ -216,6 +218,30 @@ function Schalter({ stand, info, dispatch }) {
             h: 124,
           }
         : null,
+      // Der bescheinigte Zeitraum, groß und ohne den Wasserschaden.
+      //
+      // Ein festes Kastenmaß, weil die Lupe die Zeigerlage anteilig in dieses
+      // Maß umrechnet: Bei Text, dessen Breite sich erst beim Setzen ergibt,
+      // liefe der Ausschnitt gegenüber dem Glas aus dem Ruder.
+      //
+      // Auf einem trockenen Attest liest man hier dasselbe wie daneben, nur
+      // größer – so soll es sein. Ein Lupenziel, das nur an vier Tagen
+      // reagiert, würde dem Spieler beibringen, dass die Lupe hier meistens
+      // nichts kann, und genau dann greift er an dem Tag nicht danach.
+      'attest-zeitraum': a.attest
+        ? {
+            node: (
+              <div
+                className="flex items-center justify-center font-form font-bold"
+                style={{ width: 430, height: 76, fontSize: 34, color: 'var(--color-ink-900)' }}
+              >
+                {zeitraumText(a.attest)}
+              </div>
+            ),
+            w: 430,
+            h: 76,
+          }
+        : null,
     }),
     [a],
   )
@@ -226,6 +252,14 @@ function Schalter({ stand, info, dispatch }) {
   useEffect(() => {
     spiele('papier')
   }, [stand.index])
+
+  // Zwei Rissstücke kommen obenauf. Läge eines davon unter der
+  // Entschuldigung, wäre die Aufgabe nicht „setz das zusammen", sondern „finde
+  // das zweite Stück" – und das ist eine ganz andere und deutlich schlechtere.
+  // Danach gilt wieder die normale Stapelordnung: Ab jetzt darf alles drüber.
+  useEffect(() => {
+    if (a.zustand === ZUSTAND.ZERRISSEN) nachVorn('attest')
+  }, [a.id, a.zustand, nachVorn])
 
   // Er braucht einen Moment, bis er vom Warten am Fenster ist.
   useEffect(() => {
@@ -430,16 +464,37 @@ function Schalter({ stand, info, dispatch }) {
             />
           </Ziehbar>
 
-          {a.attest && (
-            <Ziehbar
-              key={`a-${a.id}`}
-              start={startAttest}
-              z={zVon('attest')}
-              onVorn={() => nachVorn('attest')}
-            >
-              <Attest applicant={a} />
-            </Ziehbar>
-          )}
+          {/* Ein zerrissenes Attest kommt in zwei Stücken über den Tresen und
+              wird zu einem, sobald man sie zusammenschiebt. Die beiden Hälften
+              liegen mit Abstand da: nebeneinandergelegt sähe es aus wie ein
+              Blatt mit einem Sprung, und niemand käme auf die Idee, etwas zu
+              tun. Getrennt ist die Aufforderung selbstverständlich. */}
+          {a.attest &&
+            (a.zustand === ZUSTAND.ZERRISSEN ? (
+              <Zerrissen
+                key={`z-${a.id}`}
+                seed={a.seed}
+                // Höher als das heile Attest und weiter auseinander. Das heile
+                // liegt mit Absicht halb unter der Entschuldigung – man soll
+                // es hervorziehen. Zwei Stücke, von denen eines unter einem
+                // anderen Blatt steckt, sind aber keine Aufgabe mehr, sondern
+                // eine Suche, und über dem Stempelrand abgeschnitten erst recht.
+                startA={{ x: Math.max(120, startAttest.x - 118), y: 126 }}
+                startB={{ x: startAttest.x + 150, y: 178 }}
+                z={zVon('attest')}
+                onVorn={() => nachVorn('attest')}
+                blatt={(lage) => <Attest applicant={a} {...lage} />}
+              />
+            ) : (
+              <Ziehbar
+                key={`a-${a.id}`}
+                start={startAttest}
+                z={zVon('attest')}
+                onVorn={() => nachVorn('attest')}
+              >
+                <Attest applicant={a} />
+              </Ziehbar>
+            ))}
 
           <Ziehbar
             key={`f-${a.id}`}
