@@ -136,6 +136,18 @@ body {
   animation: rand-schein 900ms ease-out both;
 }
 
+/* Anmarsch: von der Warteschlange links zum Schalterfenster in der Mitte.
+ * Linear und ohne Beschleunigung – jemand, der zum Schalter geht, holt weder
+ * Schwung noch bremst er ab, und eine weiche Kurve läse sich als Schweben. */
+@keyframes anmarsch {
+  from { left: 3rem; }
+  to { left: calc(50% - 88px); }
+}
+
+.animate-anmarsch {
+  animation: anmarsch 780ms linear both;
+}
+
 .animate-paper-in {
   animation: paper-in 620ms cubic-bezier(0.22, 1.1, 0.36, 1) both;
 }
@@ -156,7 +168,8 @@ body {
   .animate-paper-in,
   .animate-stamp-slam,
   .animate-ink-settle,
-  .animate-desk-shake {
+  .animate-desk-shake,
+  .animate-anmarsch {
     animation-duration: 1ms;
   }
 

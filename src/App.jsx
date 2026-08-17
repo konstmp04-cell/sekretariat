@@ -23,6 +23,7 @@ import DaySummary from './components/DaySummary.jsx'
 import Zeugnis from './components/Zeugnis.jsx'
 import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
+import Flur, { ANMARSCH_MS } from './components/Flur.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
 import { lichtDaempfung } from './game/wetter.js'
@@ -127,6 +128,8 @@ function Schalter({ stand, info, dispatch }) {
   const [stamp, setStamp] = useState(null) // 'ok' | 'deny'
   const [feedback, setFeedback] = useState(null)
   const [shake, setShake] = useState(false)
+  // Ist der nächste Schüler schon am Fenster? Steuert nur das Bild.
+  const [angekommen, setAngekommen] = useState(false)
   const timer = useRef(null)
 
   // Stapelreihenfolge der Dokumente. Das zuletzt angefasste liegt oben –
@@ -220,6 +223,13 @@ function Schalter({ stand, info, dispatch }) {
   // Der nächste Schüler legt seine Unterlagen auf den Tresen.
   useEffect(() => {
     spiele('papier')
+  }, [stand.index])
+
+  // Er braucht einen Moment, bis er vom Warten am Fenster ist.
+  useEffect(() => {
+    setAngekommen(false)
+    const t = setTimeout(() => setAngekommen(true), ANMARSCH_MS)
+    return () => clearTimeout(t)
   }, [stand.index])
 
   // Der Grundton des Zimmers läuft, solange die Schicht läuft – und endet
@@ -332,21 +342,29 @@ function Schalter({ stand, info, dispatch }) {
           className="pointer-events-none absolute inset-0"
           style={{ background: licht.wandton, transition: 'background 1600ms linear' }}
         />
-        {/* Wer heute noch wartet */}
-        <div className="absolute bottom-4 left-8 flex items-end gap-3 opacity-25 blur-[2px]">
-          {queue.slice(stand.index + 1, stand.index + 4).map((p) => (
-            <PixelPortrait key={p.id} face={p.face} scale={1} />
-          ))}
-        </div>
+        <Flur
+          wartende={queue.slice(stand.index + 1, stand.index + 5)}
+          person={a.face}
+          index={stand.index}
+          angekommen={angekommen}
+        />
 
         <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-5">
+          {/* Das Porträt erscheint erst, wenn die Figur am Fenster
+              angekommen ist. Das Spiel wartet dabei nicht: Die Dokumente
+              liegen vom ersten Bild an auf dem Tisch. */}
           <div
             key={a.id}
-            className="animate-paper-in border-4 border-desk-600 bg-desk-900 shadow-[0_0_40px_rgb(0_0_0/0.7)]"
+            className={`border-4 border-desk-600 bg-desk-900 shadow-[0_0_40px_rgb(0_0_0/0.7)] transition-opacity duration-200 ${
+              angekommen ? 'animate-paper-in opacity-100' : 'opacity-0'
+            }`}
           >
             <PixelPortrait face={a.face} scale={3} />
           </div>
-          <div className="mb-6 max-w-[320px] rounded-sm border border-paper-400/25 bg-desk-900/85 px-4 py-3">
+          <div
+            className="mb-6 max-w-[320px] rounded-sm border border-paper-400/25 bg-desk-900/85 px-4 py-3 transition-opacity duration-200"
+            style={{ opacity: angekommen ? 1 : 0 }}
+          >
             {vorgeschichte.length > 0 && (
               <p className="mb-1 font-form text-[9px] uppercase tracking-[0.16em] text-brass/80">
                 Schon {vorgeschichte.length === 1 ? 'einmal' : vorgeschichte.length + '-mal'} hier gewesen

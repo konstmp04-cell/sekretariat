@@ -55,6 +55,11 @@ export function paletteFuer(face) {
     k: '#231b17',
     c: face.shirt,
     C: farbe(face.shirt, -0.24),
+    // Der hintere Arm der Lauffiguren. Deutlich dunkler als der
+    // Kleidungsschatten: Bei acht Pixeln Figurenbreite ist der Arm ein
+    // einziger Pixel, und ein Unterschied von 24 % verschwindet auf dieser
+    // Fläche restlos. Im Porträt kommt das Symbol nicht vor.
+    A: farbe(face.shirt, -0.5),
     m: '#a4574c', // Lippe
     M: '#5e3a30', // Mundlinie – warm statt konturschwarz
     f: '#3d352c', // Brillenfassung – dunkel, aber nicht konturschwarz

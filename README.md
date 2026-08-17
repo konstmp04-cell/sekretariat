@@ -402,6 +402,57 @@ wie die übrigen Animationen auf 1 ms gekürzt zu werden: Er ist für manche die
 einzige Rückmeldung, die ankommt. Farbe bleibt dabei nie das alleinige
 Signal – die Textzeile nennt den Grund weiterhin im Klartext.
 
+## Der Flur lebt
+
+Über dem Schalter hingen drei verwaschene Brustbilder als Andeutung einer
+Warteschlange – unbewegt, und dadurch eher Tapete als Warteschlange. Jetzt
+stehen dort Menschen, der Nächste läuft heran, und gelegentlich geht jemand
+durch, der mit dem Schalter nichts zu tun hat.
+
+**Kein Hineinzoomen.** Das Vorbild zoomt nicht, es zeigt beides gleichzeitig:
+oben den Posten, unten den Schreibtisch. Wer hineinzoomte, verdeckte die
+Papiere und ließe den Spieler warten – bei 132 Vorgängen dieselbe Rechnung wie
+beim Stempel, der nicht gezogen werden muss. Die Dokumente liegen deshalb vom
+ersten Bild an auf dem Tisch; verzögert wird das Porträt, nicht das Spiel.
+
+### Der Laufzyklus
+
+Vier handgesetzte Bilder, 8 × 17 Pixel, dieselbe Symbolschrift wie die
+Porträts – dadurch trägt jede Figur automatisch Haar- und Hautton des
+Gesichts, das gleich am Schalter steht.
+
+Drei Dinge entscheiden, ob eine Pixelfigur läuft oder gleitet:
+
+**Auf und Ab.** Beim Durchschwingen steht der Körper einen Pixel höher als
+beim Aufsetzen. Fehlt das, schwebt die Figur über dem Boden, egal wie gut die
+Beine gezeichnet sind. Der wichtigste Punkt und der, den man am ehesten
+vergisst.
+
+**Gegenschwung.** Der Arm geht vor, wenn das Bein derselben Seite zurückgeht.
+Schwingen beide gleich, sieht es aus wie Marschieren.
+
+**Ruhiger Kopf.** Er ist vier Pixel breit; jede Bewegung darin liest sich als
+Zucken.
+
+### Zwei verworfene Entwürfe
+
+Der erste war zehn Pixel breit mit acht Pixel Rumpf – eine Tonne, keine
+Schulter. Die Arme lagen als einzelne Pixel in Rumpffarbe an der Seite und
+verschmolzen vollständig.
+
+Der zweite bekam eine Kontur, so wie die Porträts sie haben. Das war der
+eigentliche Denkfehler: **Bei 44 × 52 Pixeln ist ein dunkler Rand ein
+Prozentsatz der Fläche, bei acht Pixeln Breite ist er die Hälfte der Figur.**
+Heraus kam schwarzes Gekritzel. Was bei großen Rastern Form gibt, zerstört sie
+bei kleinen.
+
+Getrennt wird jetzt über Farbe statt über Linien: Oberteil hell, Hose dunkler,
+Arm noch dunkler, Schuhe fast schwarz. Der dunkle Flur liefert den
+Außenkontrast, den sonst die Kontur liefern müsste. Der Arm bekam zunächst
+denselben Ton wie die Hose (24 % dunkler) und war unsichtbar – er ist genau
+ein Pixel breit, und auf einem Pixel trägt ein Unterschied von 24 % nichts.
+Jetzt sind es 50 %.
+
 ## Der Tag vergeht
 
 Über die Schicht wandert das Licht am Schalterfenster von kaltem Morgen über
