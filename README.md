@@ -1134,12 +1134,70 @@ ergäbe bei rund 120 Vorgängen über zwölf Tage aber Fleißarbeit statt Haptik
 ## Nächste Schritte
 
 Die beiden großen Punkte der ursprünglichen Liste – ein Finale für Tag 12 und
-die Widerspruchs-Mechanik – stehen. Offen ist:
+die Widerspruchs-Mechanik – stehen. Was noch offen ist, in der Reihenfolge, in
+der ich es angehen würde.
 
-1. Ein Elternteil, das persönlich kommt – der Lehrer mit dem Stapel steht,
-   ein Erwachsener am Schalter ändert aber auch den Ton eines Einzelvorgangs
-2. Mobiles Layout. Bis dahin steht unter 1024 px ein Hinweis statt eines
-   Rätsels
+### 1. Die Wiedervorlage – ein Karteikasten für das eigene Gedächtnis
+
+**Das Problem, das sie löst, ist real und messbar.** Das Spiel setzt darauf,
+dass man Milan über vier Auftritte an den Tagen 2, 5, 8 und 11 wiedererkennt –
+zwischen dem ersten und dem letzten liegen neun Tage und über hundert andere
+Vorgänge. Alles, was das Spiel dazu anbietet, ist eine Zeile in der
+Sprechblase („Schon 3-mal hier gewesen"). Wer sich nicht nebenbei Notizen
+macht, verliert den roten Faden – und damit ausgerechnet das, worauf Tag 12
+zuläuft.
+
+Ein Karteikasten auf dem Schreibtisch, in dem man einen Namen nachschlagen
+kann: wann war die Person hier, was wurde entschieden, was war beanstandet.
+
+**Der entscheidende Entwurfsgedanke: Der Kasten enthält nur, was man selbst
+hineingeschrieben hat.** Nicht alle 132 Vorgänge – das wäre eine Datenbank und
+unbenutzbar –, sondern die auffälligen: abgewiesene Fälle, getroffene
+Widersprüche, angenommene Zuwendungen. Über zwölf Tage sind das je nach
+Spielweise zwanzig bis dreißig Karten.
+
+Damit ist er kein Ersatz fürs Hinsehen, sondern dessen Ertrag: Wer nie genau
+geprüft hat, hat auch nichts nachzuschlagen. Und er verbindet sich mit dem,
+was schon da ist – der Sperrvermerk an Tag 11 und die Anordnung gegen Milan an
+Tag 12 lesen sich völlig anders, wenn man die eigenen Karten zu ihm danebenlegt.
+
+Offene Frage: eine Karte je Person oder je Vorgang. Je Person ist nützlicher,
+je Vorgang ehrlicher zum Sekretariatsalltag.
+
+### 2. Die UV-Lampe – Manipulationen sichtbar machen
+
+Ein neues Werkzeug muss etwas können, das kein vorhandenes kann. Die Lupe
+zeigt genauer, was ohnehin dasteht; das Telefon fragt woanders nach. Was
+beiden fehlt: **etwas sehen, das mit bloßem Auge gar nicht da ist.**
+
+Die dazugehörige neue Regel wäre **das manipulierte Attest**: Jemand hat ein
+echtes Attest genommen und das Enddatum geändert. Im normalen Licht ist nichts
+zu sehen – unter UV steht die alte Zahl darunter. Genau der Fall, an dem alle
+bisherigen Werkzeuge scheitern, und deshalb der einzige, der ein viertes
+rechtfertigt.
+
+**Kein viertes Objekt auf dem Schreibtisch.** Der Tisch ist voll, und das war
+eine ausdrückliche Vorgabe. Stattdessen bekommt die Schreibtischlampe eine
+zweite Stellung: Man schaltet das Licht um, nicht ein Gerät ein. Das knüpft
+zugleich an den Tagesverlauf an, der ohnehin über das Licht erzählt wird.
+
+Die Kosten müssen im Umschalten selbst liegen: Unter UV ist die normale Tinte
+schlecht zu lesen. Man sieht also entweder das eine oder das andere, nie
+beides – sonst ließe man das UV-Licht einfach an und hätte ein Werkzeug ohne
+Entscheidung.
+
+Zweite Möglichkeit für später: ein Sicherheitsmerkmal auf dem Praxisformular,
+das einer Fotokopie fehlt.
+
+### 3. Ein Elternteil, das persönlich kommt
+
+Der Lehrer mit dem Stapel steht; ein Erwachsener am Schalter ändert aber auch
+den Ton eines Einzelvorgangs – und beim Vorhalten reagiert eine Mutter anders
+als ein Vierzehnjähriger.
+
+### 4. Mobiles Layout
+
+Bis dahin steht unter 1024 px ein Hinweis statt eines Rätsels.
 
 ## Acht Regeln, drei Arten zu prüfen
 
