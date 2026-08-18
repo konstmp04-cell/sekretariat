@@ -873,6 +873,76 @@ denselben Ton wie die Hose (24 % dunkler) und war unsichtbar – er ist genau
 ein Pixel breit, und auf einem Pixel trägt ein Unterschied von 24 % nichts.
 Jetzt sind es 50 %.
 
+## Aus dem Gang wird ein Vorzimmer
+
+Der obere Bildschirm war eine flache Wand mit laufenden Leuten. Für ein
+Ereignis – jemand wirft etwas – ist das zu dünn: Ein Ereignis braucht eine
+Bühne, auf der etwas passieren *kann*.
+
+Kein voller Raum mit Perspektive. Der saubere Gang sähe besser aus als ein
+schlecht gemalter Raum, und die Perspektive würde mit den seitlich laufenden
+Figuren streiten. Stattdessen Tiefenhinweise:
+
+- **Schwarzes Brett** mit Aushängen, wie es in jedem Schulflur hängt.
+- **Wanduhr**, deren Zeiger mit der Schicht wandern – 8 Uhr früh bis 14 Uhr
+  nachmittags. Sie erzählt dieselbe Zeit wie das Licht, nur ablesbar.
+- **Tür mit Milchglas**, hinter dem es schwach leuchtet: es gibt ein Dahinter.
+- **Bank**, auf der die Wartenden sitzen statt im Nichts zu stehen.
+
+Alles tritt zurück. Das Vorzimmer wird **vor** die Tagesfarbe gezeichnet und
+von ihr mitgetönt; die Menschen kommen danach und bleiben ungetönt. Dadurch
+liegt die Einrichtung hinter den Figuren, gedämpfter im Kontrast – ein
+Hintergrund, kein Vordergrund. Einzige Ausnahme ist die Uhr, die ihr Messing
+behält: Sie ist das eine Detail, auf das man auch hinsieht.
+
+## Die Stinkbombe
+
+Das Vorbild hat den Moment, in dem einer eine Handgranate wirft und über die
+Grenze klettert – ein Bruch in der Routine, plötzlich und mit Folgen. Die
+schulische Entsprechung ist die Stinkbombe. Aber die direkte Übersetzung
+scheitert an einer Sache: **Sekretariat hat keine Uhr.** Bei Papers Please
+kostet der Angriff Sekunden gegen ein Soll; hier gibt es kein Soll mit
+Zeitdruck, an dem eine Betäubung beißen könnte.
+
+Deshalb eine andere Fassung, die stärker ist als das Vorbild:
+
+### Sie ist eine Folge, kein Zufall
+
+Der Wurf kommt nicht aus dem Nichts. Er kommt, wenn der **Schüler-Ruf tief
+gefallen ist** – wenn man über Tage hart war. Damit ist er nicht Slapstick,
+sondern die Quittung: die Schülerschaft, die zurückschlägt, bevor aus dem
+tiefen Ruf ein offener Aufstand wird. Wer fair war, sieht das hier nie.
+
+Die Schwelle liegt bei einem Schüler-Ruf von 22 – deutlich über der
+Aufstandsgrenze (0). Der Zwischenfall ist der Warnschuss, nicht der Knockout:
+Wer ihn sieht, ist auf dem Weg dorthin, aber noch nicht dort. Er kommt genau
+einmal im Spiel und nie am letzten Tag, der dem Abschied gehört.
+
+### Sie kostet nichts extra
+
+Der Ruf-Verlust hat längst stattgefunden – der Wurf ist sein sichtbares Echo,
+nicht eine zweite Strafe obendrauf. Den Spieler zusätzlich zu bestrafen, weil
+die Schüler etwas tun, wäre unfair. Die Wucht liegt im Bild, nicht in der Zahl:
+das Fläschchen im Bogen, die grüne Wolke, der Bildschirm, der zittert, die
+Wartenden, die von der Bank fliehen, und ein Zischen statt eines Knalls – eine
+Stinkbombe zerplatzt, sie explodiert nicht.
+
+### Der Werfer trägt, wenn möglich, ein bekanntes Gesicht
+
+Hat man **Milan wiederholt abgewiesen**, ist er es – die eine Figur, die man
+über vier Auftritte wirklich kennt und abweisen kann. Sonst ein aufgebrachter
+Fremder: Der Ruf ist etwas Kollektives, und wer viele abgewiesen hat, hat sie
+alle gegen sich, nicht einen einzelnen.
+
+### Ein Fehler, den das Messen sofort zeigte
+
+Der erste Bau ließ den Vermerk endlos hängen und meldete das Ende nie. Grund:
+Der Ablauf (Werfer → Wurf → Knall → Wolke → Ende) hing an den Rückruf-Funktionen
+`onKnall`/`onFertig`. Die sind bei jedem Neuzeichnen neu, und der Bildschirm-
+Wackler beim Knall löst ein Neuzeichnen aus – also setzten sich beim Knall alle
+Timer zurück, und der Ende-Timer feuerte nie. Die Rückrufe liegen jetzt in
+Refs, der Zeitplan an einem Effekt, der genau einmal beim Erscheinen startet.
+
 ## Der Tag vergeht
 
 Über die Schicht wandert das Licht am Schalterfenster von kaltem Morgen über

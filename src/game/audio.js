@@ -171,6 +171,20 @@ function naht(ctx, ziel, t) {
   })
 }
 
+/**
+ * Die Stinkbombe.
+ *
+ * Kein Knall – eine Stinkbombe zerplatzt, sie explodiert nicht. Ein kurzer,
+ * tiefer Plopp, wenn das Fläschchen bricht, und darunter ein längeres Zischen:
+ * das Gas, das entweicht. Ein Bombenkrachen an dieser Stelle machte aus einem
+ * Schülerstreich einen Anschlag.
+ */
+function stinkbombe(ctx, ziel, t) {
+  ton(ctx, ziel, t, { form: 'triangle', freq: 150, freqEnde: 58, dauer: 0.09, gain: 0.26 })
+  rauschen(ctx, ziel, t + 0.02, { dauer: 0.95, typ: 'bandpass', freq: 1100, q: 0.7, gain: 0.17 })
+  rauschen(ctx, ziel, t + 0.05, { dauer: 0.7, typ: 'highpass', freq: 2600, gain: 0.05 })
+}
+
 /** Summer bei Fehlentscheidung – hart, elektrisch, unangenehm. */
 function summer(ctx, ziel, t) {
   const dauer = 0.34
@@ -328,7 +342,7 @@ function waehlen(ctx, ziel, t) {
   }
 }
 
-export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur, waehlen, naht }
+export const KLAENGE = { stempel, papier, summer, glocke, klick, haken, flur, waehlen, naht, stinkbombe }
 
 // --- Wiedergabe ---------------------------------------------------------
 

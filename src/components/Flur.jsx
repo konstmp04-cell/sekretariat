@@ -68,7 +68,7 @@ function Passant({ face, nachLinks, dauer, onFertig }) {
   )
 }
 
-export default function Flur({ wartende, person, index, angekommen }) {
+export default function Flur({ wartende, person, index, angekommen, pausiert = false, fliehen = false }) {
   const [passanten, setPassanten] = useState([])
   const naechsteId = useRef(0)
 
@@ -109,14 +109,19 @@ export default function Flur({ wartende, person, index, angekommen }) {
           dem Schalter am nächsten. Genau von dort startet der Anmarsch. */}
       <div className="pointer-events-none absolute bottom-1 left-[calc(50%-436px)] flex flex-row-reverse items-end gap-5">
         {wartende.map((f, i) => (
-          <span key={f.id} style={{ opacity: 0.75 - i * 0.13 }}>
-            <LaufFigur face={f.face} px={2} geht={false} />
+          <span
+            key={f.id}
+            className={fliehen ? 'animate-fliehen' : ''}
+            style={{ opacity: 0.75 - i * 0.13, animationDelay: `${i * 60}ms` }}
+          >
+            <LaufFigur face={f.face} px={2} geht={fliehen} />
           </span>
         ))}
       </div>
 
-      {/* Anmarsch: löst sich aus der Schlange und geht zum Fenster. */}
-      {!angekommen && (
+      {/* Anmarsch: löst sich aus der Schlange und geht zum Fenster. Während
+          eines Zwischenfalls bleibt er aus – niemand geht in die Wolke. */}
+      {!angekommen && !pausiert && (
         <div
           key={index}
           className="pointer-events-none absolute bottom-1 animate-anmarsch"

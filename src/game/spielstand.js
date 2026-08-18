@@ -30,6 +30,15 @@ export const ENDE = {
 /** Ab der dritten angenommenen Zuwendung ist sofort Schluss. */
 export const BESTECHUNGSGRENZE = 3
 
+/**
+ * Unter diesem Schüler-Ruf kippt die Stimmung, und es fliegt eine Stinkbombe.
+ *
+ * Bewusst deutlich über der Aufstandsgrenze (0): Der Zwischenfall ist der
+ * Warnschuss, nicht der Knockout. Wer ihn sieht, ist auf dem Weg zum Aufstand,
+ * aber noch nicht dort – es bleibt Zeit umzusteuern.
+ */
+export const VORFALL_SCHWELLE = 22
+
 const START_RUF = { rektor: 60, schueler: 55 }
 
 const klemm = (n) => Math.max(0, Math.min(100, n))
@@ -76,6 +85,12 @@ export function neuerStand() {
     // keine Tagesration mehr.
     anrufe: ANRUFE_PRO_TAG,
     abbruch: false,
+    // Läuft an einem Schichtbeginn eine Stinkbombe? Wird dann auf eine Quelle
+    // gesetzt ('milan' | 'anonym') und nach dem Abspielen wieder geleert.
+    zwischenfall: null,
+    // Einmal pro Spiel. Sonst wiederholte sich der Vorfall jeden Morgen,
+    // solange der Ruf tief bleibt, und aus einem Ereignis würde Alltag.
+    vorfallGehabt: false,
   }
 }
 
@@ -129,7 +144,16 @@ export function reduce(stand, aktion) {
         tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
       }
 
-    case 'SCHICHT_STARTEN':
+    case 'SCHICHT_STARTEN': {
+      // Ist die Stimmung gekippt? Dann fliegt heute früh eine Stinkbombe –
+      // einmal im ganzen Spiel, und nicht am letzten Tag, der dem Abschied
+      // gehört. Wurde Milan wiederholt abgewiesen, ist er der Werfer; sonst
+      // ein Fremder, denn der tiefe Ruf hat man sich bei allen geholt.
+      const milanAbgewiesen = (stand.begegnungen.milan ?? []).some(
+        (b) => b.entscheidung === 'deny',
+      )
+      const kippt =
+        !stand.vorfallGehabt && stand.tag < LETZTER_TAG && stand.ruf.schueler <= VORFALL_SCHWELLE
       return {
         ...stand,
         phase: PHASE.SCHICHT,
@@ -137,10 +161,17 @@ export function reduce(stand, aktion) {
         tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
         anrufe: ANRUFE_PRO_TAG,
         rufBeiTagesbeginn: { ...stand.ruf },
+        zwischenfall: kippt ? { quelle: milanAbgewiesen ? 'milan' : 'anonym' } : null,
+        vorfallGehabt: stand.vorfallGehabt || kippt,
       }
+    }
 
     case 'ANRUFEN':
       return { ...stand, anrufe: Math.max(0, stand.anrufe - 1) }
+
+    // Die Wolke hat sich verzogen. Kostet nichts – der Ruf-Verlust war vorher.
+    case 'ZWISCHENFALL_VORBEI':
+      return { ...stand, zwischenfall: null }
 
     /**
      * Jemandem zwei Felder hinhalten.
@@ -303,6 +334,7 @@ export function speichern(stand) {
         gesamt: stand.gesamt,
         anweisungen: stand.anweisungen,
         konfrontationen: stand.konfrontationen,
+        vorfallGehabt: stand.vorfallGehabt,
         begegnungen: stand.begegnungen,
         bestechungen: stand.bestechungen,
       }),
@@ -332,6 +364,7 @@ export function laden() {
         treffer: d.konfrontationen?.treffer ?? 0,
         daneben: d.konfrontationen?.daneben ?? 0,
       },
+      vorfallGehabt: d.vorfallGehabt ?? false,
       gesamt: {
         richtig: d.gesamt?.richtig ?? 0,
         falsch: d.gesamt?.falsch ?? 0,

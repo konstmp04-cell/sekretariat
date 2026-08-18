@@ -16,6 +16,8 @@ import Signature from './components/Signature.jsx'
 import Dienstanweisung from './components/Dienstanweisung.jsx'
 import Schreibtischdeko from './components/Schreibtischdeko.jsx'
 import PixelPortrait from './components/PixelPortrait.jsx'
+import { makeFace } from './game/face.js'
+import { hashSeed } from './game/rng.js'
 import Galerie from './components/Galerie.jsx'
 import Stamp from './components/Stamp.jsx'
 import TitleScreen from './components/TitleScreen.jsx'
@@ -27,6 +29,7 @@ import Ziehbar from './components/Ziehbar.jsx'
 import Zerrissen from './components/Zerrissen.jsx'
 import Flur, { ANMARSCH_MS } from './components/Flur.jsx'
 import Vorzimmer from './components/Vorzimmer.jsx'
+import Zwischenfall from './components/Zwischenfall.jsx'
 import Telefon from './components/Telefon.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
@@ -196,6 +199,16 @@ function Schalter({ stand, info, dispatch }) {
   // Wetter, das am Morgen in der Zeitung stand.
   const licht = lichtFuer(fortschrittImTag(stand.index, info.anzahl), lichtDaempfung(info.tag))
 
+  // Wer die Stinkbombe wirft. Milan trägt sein festes Gesicht; ein anonymer
+  // Werfer ein am Tag hängendes, damit er über die Dauer des Vorfalls stabil
+  // bleibt.
+  const werferFace = useMemo(() => {
+    if (!stand.zwischenfall) return null
+    return stand.zwischenfall.quelle === 'milan'
+      ? makeFace(hashSeed('figur-milan'), false)
+      : makeFace(hashSeed(`vorfall-${stand.tag}`), false)
+  }, [stand.zwischenfall, stand.tag])
+
   // Frühere Begegnungen mit dieser Figur – daraus entsteht ihre Zeile.
   // Nur frühere Tage zählen als Vorgeschichte.
   //
@@ -296,12 +309,16 @@ function Schalter({ stand, info, dispatch }) {
     setGewaehlt(null)
     setNachfrage(false)
     clearTimeout(antwortUhr.current)
+    // Solange die Stinkbombe raucht, kommt niemand an den Schalter. Der Timer
+    // startet erst, wenn der Zwischenfall vorbei ist – dann läuft dieser
+    // Effekt wegen der Abhängigkeit erneut.
+    if (stand.zwischenfall) return undefined
     const t = setTimeout(() => {
       setAngekommen(true)
       spiele('papier')
     }, ANMARSCH_MS)
     return () => clearTimeout(t)
-  }, [stand.index])
+  }, [stand.index, stand.zwischenfall])
 
   useEffect(() => () => clearTimeout(antwortUhr.current), [])
 
@@ -536,7 +553,21 @@ function Schalter({ stand, info, dispatch }) {
             person={a.face}
             index={stand.index}
             angekommen={angekommen}
+            pausiert={!!stand.zwischenfall}
+            fliehen={!!stand.zwischenfall}
           />
+
+          {stand.zwischenfall && werferFace && (
+            <Zwischenfall
+              face={werferFace}
+              onKnall={() => {
+                spiele('stinkbombe')
+                setShake(true)
+                setTimeout(() => setShake(false), 320)
+              }}
+              onFertig={() => dispatch({ typ: 'ZWISCHENFALL_VORBEI' })}
+            />
+          )}
 
           <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-5">
             {/* Porträt, Wortmeldung und Unterlagen erscheinen gemeinsam, wenn
