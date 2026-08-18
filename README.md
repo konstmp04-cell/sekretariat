@@ -786,8 +786,9 @@ Signal – die Textzeile nennt den Grund weiterhin im Klartext.
 
 Über dem Schalter hingen drei verwaschene Brustbilder als Andeutung einer
 Warteschlange – unbewegt, und dadurch eher Tapete als Warteschlange. Jetzt
-stehen dort Menschen, der Nächste läuft heran, und gelegentlich geht jemand
-durch, der mit dem Schalter nichts zu tun hat.
+sitzen dort Menschen auf einer Bank, und der Nächste löst sich und läuft zum
+Fenster. (Ursprünglich liefen zusätzlich Passanten quer durchs Bild – die sind
+mit dem Umbau zum Vorzimmer hinter die Tür gewandert, siehe unten.)
 
 **Kein Hineinzoomen.** Das Vorbild zoomt nicht, es zeigt beides gleichzeitig:
 oben den Posten, unten den Schreibtisch. Wer hineinzoomte, verdeckte die
@@ -894,6 +895,25 @@ von ihr mitgetönt; die Menschen kommen danach und bleiben ungetönt. Dadurch
 liegt die Einrichtung hinter den Figuren, gedämpfter im Kontrast – ein
 Hintergrund, kein Vordergrund. Einzige Ausnahme ist die Uhr, die ihr Messing
 behält: Sie ist das eine Detail, auf das man auch hinsieht.
+
+### Der Betrieb wandert hinter die Tür
+
+Früher liefen Passanten quer durch den Vordergrund – „die Schule läuft weiter,
+während man Papiere prüft". Das passte zu einem *Gang*. Ein *Vorzimmer* ist
+aber kein Durchgang, und Leute, die vor der eigenen Nase durchs Wartezimmer
+laufen, lesen sich falsch.
+
+Ganz streichen hieße, das Gefühl zu verlieren. Also ist die Bewegung hinter die
+Milchglastür gewandert: Gelegentlich zieht ein Schatten hinter der Scheibe
+vorbei – der Flur geht dahinter weiter, man sieht es nur durchs Glas. Das passt
+zum Raum *und* macht die Tür zu einem echten Durchgang, hinter dem etwas ist.
+
+Damit ein dunkler Schatten überhaupt liest, musste erst das Glas heller werden:
+Ein dunkler Schatten auf dunklem Glas hat keinen Kontrast. Und der Schatten
+selbst ist kein weicher Fleck (der ging auf der kleinen Scheibe unter, zumal der
+Tageslicht-Schleier darüberliegt), sondern ein dunkler Balken mit ausgefransten
+Rändern – solide Mitte, weiche Flanken. Gemessen an drei Positionen quer durchs
+Glas, damit die Bewegung tatsächlich durchzieht statt nur aufzublitzen.
 
 ## Die Stinkbombe
 

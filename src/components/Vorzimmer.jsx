@@ -25,6 +25,8 @@
  * ihr Messing behalten, weil sie das eine Detail ist, auf das man auch hinsieht.
  */
 
+import { useEffect, useRef, useState } from 'react'
+
 /** Wanduhr, die den Stand der Schicht zeigt (8 Uhr früh bis 14 Uhr). */
 function Wanduhr({ fortschritt }) {
   const stunde = 8 + 6 * fortschritt
@@ -126,8 +128,87 @@ function Brett() {
   )
 }
 
-/** Eine Tür mit Milchglasfenster – dahinter geht der Flur weiter. */
+/**
+ * Ein Schatten, der hinter dem Milchglas vorbeizieht.
+ *
+ * Vertikal, dunkel und weich – hinter Milchglas ist ein Mensch keine Gestalt
+ * mehr, nur eine Verdunklung, die wandert. Erst startet er außerhalb der
+ * Scheibe und gleitet in einem Zug hindurch; die Bewegung selbst ist die ganze
+ * Aussage: Da geht der Flur weiter.
+ */
+function Schatten({ nachLinks, dauer, breite, onFertig }) {
+  const [weg, setWeg] = useState(false)
+  useEffect(() => {
+    const a = setTimeout(() => setWeg(true), 30)
+    const e = setTimeout(onFertig, dauer + 200)
+    return () => {
+      clearTimeout(a)
+      clearTimeout(e)
+    }
+  }, [dauer, onFertig])
+
+  const start = nachLinks ? '120%' : '-45%'
+  const ziel = nachLinks ? '-45%' : '120%'
+  return (
+    <div
+      className="absolute"
+      style={{
+        bottom: '-25%',
+        left: weg ? ziel : start,
+        width: breite,
+        height: '150%',
+        // Ein dunkler Balken mit ausgefransten Rändern, nicht ein Fleck: Der
+        // erste Entwurf verlief nach außen zu weich und ging auf der kleinen
+        // Scheibe unter, zumal der Tageslicht-Schleier darüberliegt. Solide
+        // Mitte, weiche Flanken – so liest sich klar eine Verdunklung, die
+        // durchzieht.
+        background:
+          'linear-gradient(90deg, transparent, rgb(14 18 20 / 0.92) 32%, rgb(14 18 20 / 0.92) 68%, transparent)',
+        filter: 'blur(2px)',
+        transition: `left ${dauer}ms linear`,
+      }}
+    />
+  )
+}
+
+/**
+ * Eine Tür mit Milchglasfenster – dahinter geht der Flur weiter.
+ *
+ * Und dieses „dahinter" ist jetzt bewohnt. Früher liefen die Durchgehenden im
+ * Vordergrund quer durchs Bild – das passte zu einem GANG. In einem VORZIMMER
+ * läuft niemand vorne durch, ein Wartezimmer ist kein Durchgang. Die Bewegung
+ * ist deshalb hinter das Glas gewandert: Man sieht den Betrieb der Schule als
+ * Schatten durch die Scheibe, nicht als Läufer vor der eigenen Nase.
+ */
 function Tuer() {
+  const [schatten, setSchatten] = useState([])
+  const naechste = useRef(0)
+
+  useEffect(() => {
+    let uhr = null
+    const planen = () => {
+      // Unregelmäßig, wie bei den früheren Passanten: Ein Takt läse sich als
+      // Maschine, nicht als Schulflur.
+      uhr = setTimeout(() => {
+        const id = naechste.current++
+        setSchatten((s) => [
+          ...s.slice(-2),
+          {
+            id,
+            nachLinks: Math.random() < 0.5,
+            dauer: 2400 + Math.random() * 2400,
+            breite: 18 + Math.random() * 14,
+          },
+        ])
+        planen()
+      }, 3800 + Math.random() * 7000)
+    }
+    planen()
+    return () => clearTimeout(uhr)
+  }, [])
+
+  const entfernen = (id) => setSchatten((s) => s.filter((x) => x.id !== id))
+
   return (
     <div
       className="pointer-events-none absolute"
@@ -143,20 +224,30 @@ function Tuer() {
         boxShadow: '0 0 16px rgb(0 0 0 / 0.5)',
       }}
     >
-      {/* Milchglas: schwacher Schein von hinten. Dass dahinter Licht ist, sagt,
-          dass dahinter überhaupt etwas ist. */}
+      {/* Milchglas: schwacher Schein von hinten, und davor die Schatten. Das
+          overflow-hidden schneidet die Schatten an der Scheibenkante ab – sie
+          sind nur IM Fenster zu sehen, nicht daneben auf dem Türblatt. */}
       <div
-        className="absolute"
+        className="absolute overflow-hidden"
         style={{
           left: '16%',
           top: '10%',
           width: '68%',
           height: '38%',
-          background: 'linear-gradient(180deg, rgb(210 200 170 / 0.34), rgb(150 150 140 / 0.14))',
+          // Deutlich heller als der erste Entwurf. Der Schatten davor ist dunkel,
+          // und ein dunkler Schatten auf dunklem Glas hat keinen Kontrast – erst
+          // wenn hinter der Scheibe wirklich Licht liegt, liest sich einer, der
+          // davor vorbeigeht, als Verdunklung. Das brachte zugleich die Tür
+          // besser zur Geltung: Jetzt sieht man, dass dahinter ein Flur brennt.
+          background: 'linear-gradient(180deg, rgb(228 220 190 / 0.62), rgb(180 178 158 / 0.32))',
           border: '2px solid #14181a',
-          boxShadow: 'inset 0 0 12px rgb(230 220 190 / 0.2)',
+          boxShadow: 'inset 0 0 12px rgb(240 232 200 / 0.3)',
         }}
-      />
+      >
+        {schatten.map((s) => (
+          <Schatten key={s.id} {...s} onFertig={() => entfernen(s.id)} />
+        ))}
+      </div>
       {/* Türklinke */}
       <span
         className="absolute rounded-full"
