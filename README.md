@@ -590,8 +590,30 @@ durch, der mit dem Schalter nichts zu tun hat.
 **Kein Hineinzoomen.** Das Vorbild zoomt nicht, es zeigt beides gleichzeitig:
 oben den Posten, unten den Schreibtisch. Wer hineinzoomte, verdeckte die
 Papiere und ließe den Spieler warten – bei 132 Vorgängen dieselbe Rechnung wie
-beim Stempel, der nicht gezogen werden muss. Die Dokumente liegen deshalb vom
-ersten Bild an auf dem Tisch; verzögert wird das Porträt, nicht das Spiel.
+beim Stempel, der nicht gezogen werden muss.
+
+### Die Papiere kommen mit der Person, nicht vor ihr
+
+Zuerst lagen die Unterlagen vom ersten Bild an auf dem Tisch, während ihr
+Besitzer noch durch den Flur lief. Der Gedanke dahinter war „nicht warten
+lassen", das Ergebnis war ein Widerspruch: Die Papiere waren vor dem Menschen
+am Schalter, und der Anmarsch sah dadurch nach Zierleiste aus statt nach
+Vorgang. Niemand hatte etwas abgegeben, und trotzdem lag alles da.
+
+Jetzt erscheinen Porträt, Wortmeldung und Unterlagen gemeinsam mit der
+Ankunft – das Rascheln liegt auf diesem Punkt, nicht auf dem Beginn des
+Anmarsches. **Zusätzliche Wartezeit entsteht dadurch nicht:** Porträt und
+Wortmeldung warteten ohnehin schon, in diesen zwei Sekunden gab es bisher nur
+Papiere ohne den Menschen, der sie erklärt.
+
+Mit den Papieren gesperrt sind Stempel und Telefon – auch über die Tastatur,
+sonst stempelte man einen leeren Tresen. Der Apparat bleibt dabei stehen, er
+gehört dem Schreibtisch und nicht dem Schüler; die Nummernliste sagt nur „Es
+steht noch niemand am Schalter."
+
+Außerhalb dieser Bedingung stehen Lupe und Klausuraushang: Beide gehören dem
+Tag, nicht dem Vorgang. Der Aushang ist zugleich das einzige, was sich während
+des Anmarsches lesen lässt – und dafür ist er dort genau richtig.
 
 ### Wie schnell jemand geht
 

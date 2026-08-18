@@ -248,10 +248,18 @@ function Schalter({ stand, info, dispatch }) {
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  // Der nächste Schüler legt seine Unterlagen auf den Tresen.
-  useEffect(() => {
-    spiele('papier')
-  }, [stand.index])
+  // Die Unterlagen kommen mit der Person, nicht vor ihr.
+  //
+  // Vorher lagen sie vom ersten Bild an da, während ihr Besitzer noch durch
+  // den Flur lief – die Papiere waren also vor dem Menschen am Schalter. Das
+  // war der eigentliche Fehler am Anmarsch: Nicht die Wartezeit, sondern dass
+  // das Warten sinnlos aussah, weil die Arbeit schon dalag.
+  //
+  // Zusätzliche Leerzeit entsteht dadurch nicht. Porträt und Wortmeldung
+  // warteten ohnehin schon auf die Ankunft; in diesen zwei Sekunden gab es
+  // bisher nur die Papiere ohne den Menschen, der sie erklärt. Was bleibt,
+  // ist der Klausuraushang – der gehört dem Tag und nicht dem Vorgang, und
+  // man kann ihn währenddessen durchsehen.
 
   // Zwei Rissstücke kommen obenauf. Läge eines davon unter der
   // Entschuldigung, wäre die Aufgabe nicht „setz das zusammen", sondern „finde
@@ -261,10 +269,15 @@ function Schalter({ stand, info, dispatch }) {
     if (a.zustand === ZUSTAND.ZERRISSEN) nachVorn('attest')
   }, [a.id, a.zustand, nachVorn])
 
-  // Er braucht einen Moment, bis er vom Warten am Fenster ist.
+  // Er braucht einen Moment, bis er vom Warten am Fenster ist – und legt die
+  // Unterlagen erst dann auf den Tresen. Das Rascheln gehört an diesen Punkt,
+  // nicht an den Beginn des Anmarsches.
   useEffect(() => {
     setAngekommen(false)
-    const t = setTimeout(() => setAngekommen(true), ANMARSCH_MS)
+    const t = setTimeout(() => {
+      setAngekommen(true)
+      spiele('papier')
+    }, ANMARSCH_MS)
     return () => clearTimeout(t)
   }, [stand.index])
 
@@ -294,7 +307,9 @@ function Schalter({ stand, info, dispatch }) {
 
   const entscheiden = useCallback(
     (kind, bestochen = false) => {
-      if (stamp) return
+      // Auch die Tastatur: Ohne diese Sperre stempelte man einen leeren
+      // Tresen, während der Vorgang noch durch den Flur läuft.
+      if (stamp || !angekommen) return
       const { richtig, verstoesse, anweisung, befolgt } = pruefeEntscheidung(a, info.tag, kind)
 
       setStamp(kind)
@@ -330,7 +345,7 @@ function Schalter({ stand, info, dispatch }) {
         dispatch({ typ: 'NAECHSTER' })
       }, 1900)
     },
-    [a, stamp, info.tag, dispatch],
+    [a, stamp, angekommen, info.tag, dispatch],
   )
 
   useEffect(() => {
@@ -386,9 +401,8 @@ function Schalter({ stand, info, dispatch }) {
         />
 
         <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-5">
-          {/* Das Porträt erscheint erst, wenn die Figur am Fenster
-              angekommen ist. Das Spiel wartet dabei nicht: Die Dokumente
-              liegen vom ersten Bild an auf dem Tisch. */}
+          {/* Porträt, Wortmeldung und Unterlagen erscheinen gemeinsam, wenn
+              die Figur am Schalter steht. */}
           <div
             key={a.id}
             className={`border-4 border-desk-600 bg-desk-900 shadow-[0_0_40px_rgb(0_0_0/0.7)] transition-opacity duration-200 ${
@@ -446,76 +460,92 @@ function Schalter({ stand, info, dispatch }) {
           applicant={a}
           uebrig={stand.anrufe}
           gestoert={!verfuegbar(STOERUNG.TELEFON, info.tag)}
+          wartet={!angekommen}
           onAnruf={() => dispatch({ typ: 'ANRUFEN' })}
         />
 
         {/* Freie Ablagefläche: Die Dokumente liegen übereinander und lassen
             sich mit der Maus auseinanderschieben. */}
         <div className="relative h-full w-full">
-          <Ziehbar
-            key={`n-${a.id}`}
-            start={startNotiz}
-            z={zVon('notiz')}
-            onVorn={() => nachVorn('notiz')}
-          >
-            <ExcuseNote
-              applicant={a}
-              stamped={stamp ? <Stamp kind={stamp} rotate={-11} size={168} /> : null}
-            />
-          </Ziehbar>
+          {/* Die Unterlagen des Vorgangs.
 
-          {/* Ein zerrissenes Attest kommt in zwei Stücken über den Tresen und
-              wird zu einem, sobald man sie zusammenschiebt. Die beiden Hälften
-              liegen mit Abstand da: nebeneinandergelegt sähe es aus wie ein
-              Blatt mit einem Sprung, und niemand käme auf die Idee, etwas zu
-              tun. Getrennt ist die Aufforderung selbstverständlich. */}
-          {a.attest &&
-            (a.zustand === ZUSTAND.ZERRISSEN ? (
-              <Zerrissen
-                key={`z-${a.id}`}
-                seed={a.seed}
-                // Höher als das heile Attest und weiter auseinander. Das heile
-                // liegt mit Absicht halb unter der Entschuldigung – man soll
-                // es hervorziehen. Zwei Stücke, von denen eines unter einem
-                // anderen Blatt steckt, sind aber keine Aufgabe mehr, sondern
-                // eine Suche, und über dem Stempelrand abgeschnitten erst recht.
-                startA={{ x: Math.max(120, startAttest.x - 118), y: 126 }}
-                startB={{ x: startAttest.x + 150, y: 178 }}
-                z={zVon('attest')}
-                onVorn={() => nachVorn('attest')}
-                blatt={(lage) => <Attest applicant={a} {...lage} />}
-              />
-            ) : (
+              Sie liegen erst da, wenn ihr Besitzer am Schalter steht. Vorher
+              hätte sie niemand abgegeben – und ein Tresen voller Papiere,
+              während der Mensch dazu noch durch den Flur läuft, macht aus dem
+              Anmarsch eine Zierleiste statt eines Vorgangs.
+
+              Der Aushang und die Lupe stehen bewusst AUSSERHALB dieser
+              Bedingung: Beide gehören dem Tag, nicht dem Vorgang. Der Aushang
+              ist zugleich das einzige, was man während des Anmarsches lesen
+              kann, und genau dafür ist er dort richtig. */}
+          {angekommen && (
+            <>
               <Ziehbar
-                key={`a-${a.id}`}
-                start={startAttest}
-                z={zVon('attest')}
-                onVorn={() => nachVorn('attest')}
+                key={`n-${a.id}`}
+                start={startNotiz}
+                z={zVon('notiz')}
+                onVorn={() => nachVorn('notiz')}
               >
-                <Attest applicant={a} />
+                <ExcuseNote
+                  applicant={a}
+                  stamped={stamp ? <Stamp kind={stamp} rotate={-11} size={168} /> : null}
+                />
               </Ziehbar>
-            ))}
 
-          <Ziehbar
-            key={`f-${a.id}`}
-            start={startAkte}
-            z={zVon('akte')}
-            onVorn={() => nachVorn('akte')}
-          >
-            <StudentFile applicant={a} />
-          </Ziehbar>
+              {/* Ein zerrissenes Attest kommt in zwei Stücken über den Tresen und
+                  wird zu einem, sobald man sie zusammenschiebt. Die beiden Hälften
+                  liegen mit Abstand da: nebeneinandergelegt sähe es aus wie ein
+                  Blatt mit einem Sprung, und niemand käme auf die Idee, etwas zu
+                  tun. Getrennt ist die Aufforderung selbstverständlich. */}
+              {a.attest &&
+                (a.zustand === ZUSTAND.ZERRISSEN ? (
+                  <Zerrissen
+                    key={`z-${a.id}`}
+                    seed={a.seed}
+                    // Höher als das heile Attest und weiter auseinander. Das heile
+                    // liegt mit Absicht halb unter der Entschuldigung – man soll
+                    // es hervorziehen. Zwei Stücke, von denen eines unter einem
+                    // anderen Blatt steckt, sind aber keine Aufgabe mehr, sondern
+                    // eine Suche, und über dem Stempelrand abgeschnitten erst recht.
+                    startA={{ x: Math.max(120, startAttest.x - 118), y: 126 }}
+                    startB={{ x: startAttest.x + 150, y: 178 }}
+                    z={zVon('attest')}
+                    onVorn={() => nachVorn('attest')}
+                    blatt={(lage) => <Attest applicant={a} {...lage} />}
+                  />
+                ) : (
+                  <Ziehbar
+                    key={`a-${a.id}`}
+                    start={startAttest}
+                    z={zVon('attest')}
+                    onVorn={() => nachVorn('attest')}
+                  >
+                    <Attest applicant={a} />
+                  </Ziehbar>
+                ))}
 
-          {/* Das Bestechungsgeld. Verschwindet mit der Entscheidung – ob
-              angenommen oder nicht, danach liegt es nicht mehr da. */}
-          {a.auftritt?.bestechung && !stamp && (
-            <Ziehbar
-              key={`g-${a.id}`}
-              start={startSchein}
-              z={zVon('schein')}
-              onVorn={() => nachVorn('schein')}
-            >
-              <Geldschein betrag={a.auftritt.bestechung.betrag} />
-            </Ziehbar>
+              <Ziehbar
+                key={`f-${a.id}`}
+                start={startAkte}
+                z={zVon('akte')}
+                onVorn={() => nachVorn('akte')}
+              >
+                <StudentFile applicant={a} />
+              </Ziehbar>
+
+              {/* Das Bestechungsgeld. Verschwindet mit der Entscheidung – ob
+                  angenommen oder nicht, danach liegt es nicht mehr da. */}
+              {a.auftritt?.bestechung && !stamp && (
+                <Ziehbar
+                  key={`g-${a.id}`}
+                  start={startSchein}
+                  z={zVon('schein')}
+                  onVorn={() => nachVorn('schein')}
+                >
+                  <Geldschein betrag={a.auftritt.bestechung.betrag} />
+                </Ziehbar>
+              )}
+            </>
           )}
 
           {/* Der Aushang gehört keinem Schüler: Er hängt am Tag, nicht am
@@ -545,7 +575,7 @@ function Schalter({ stand, info, dispatch }) {
               dieser Zeile alles Mögliche landen – auf einem breiten
               Bildschirm schon von Haus aus die Entschuldigung. Ein Hinweis,
               der im Papier steht, liest sich wie ein Druckfehler. */}
-          {info.tag === 1 && stand.index === 0 && !stamp && (
+          {info.tag === 1 && stand.index === 0 && angekommen && !stamp && (
             <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-paper-400/15 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-paper-400/65">
               Dokumente und Lupe lassen sich verschieben
             </p>
@@ -624,7 +654,7 @@ function Schalter({ stand, info, dispatch }) {
             </button>
           )}
 
-          <Stempelwerkzeug onEntscheiden={entscheiden} gesperrt={!!stamp} />
+          <Stempelwerkzeug onEntscheiden={entscheiden} gesperrt={!!stamp || !angekommen} />
         </div>
       </div>
     </div>

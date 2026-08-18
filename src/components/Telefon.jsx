@@ -75,7 +75,14 @@ function Apparat({ abgehoben }) {
   )
 }
 
-export default function Telefon({ applicant, uebrig, gestoert = false, onAnruf }) {
+/**
+ * @param {boolean} [wartet]
+ *   Der nächste Vorgang läuft noch durch den Flur. Der Apparat bleibt stehen –
+ *   er gehört dem Schreibtisch und nicht dem Schüler –, aber es gibt niemanden,
+ *   nach dem sich fragen ließe. Eine Auskunft über jemanden, der noch gar nicht
+ *   am Schalter steht, wäre dasselbe Vorgreifen wie Papiere ohne ihren Besitzer.
+ */
+export default function Telefon({ applicant, uebrig, gestoert = false, wartet = false, onAnruf }) {
   const [offen, setOffen] = useState(false)
   const [klingelt, setKlingelt] = useState(false)
   const [notiz, setNotiz] = useState(null)
@@ -93,7 +100,7 @@ export default function Telefon({ applicant, uebrig, gestoert = false, onAnruf }
   useEffect(() => () => clearTimeout(uhr.current), [])
 
   const anrufen = (nummer) => {
-    if (gestoert || uebrig <= 0 || klingelt) return
+    if (gestoert || wartet || uebrig <= 0 || klingelt) return
     setOffen(false)
     setKlingelt(true)
     spiele('waehlen')
@@ -125,7 +132,9 @@ export default function Telefon({ applicant, uebrig, gestoert = false, onAnruf }
         </button>
         <span
           className="font-form text-[9px] uppercase tracking-[0.14em]"
-          style={{ color: leer || gestoert ? 'var(--color-ink-500)' : 'var(--color-brass)' }}
+          style={{
+            color: leer || gestoert || wartet ? 'var(--color-ink-500)' : 'var(--color-brass)',
+          }}
         >
           {gestoert ? 'Kein Freizeichen' : klingelt ? 'Es klingelt …' : `${uebrig} von ${ANRUFE_PRO_TAG}`}
         </span>
@@ -145,6 +154,10 @@ export default function Telefon({ applicant, uebrig, gestoert = false, onAnruf }
             <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
               Kein Freizeichen. Die Amtsleitung ist seit gestern tot, die
               Technik ist verständigt.
+            </p>
+          ) : wartet ? (
+            <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
+              Es steht noch niemand am Schalter.
             </p>
           ) : leer ? (
             <p className="px-1 py-2 font-form text-[10px] leading-snug text-paper-400/70">
