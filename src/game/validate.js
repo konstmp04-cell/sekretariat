@@ -63,10 +63,57 @@ export function findeVerstoesse(a, day) {
 }
 
 /**
+ * Welcher Zettel eines Stapels ist zu beanstanden?
+ *
+ * Läuft über dieselbe `findeVerstoesse` wie jeder Einzelvorgang – die Blätter
+ * tragen dafür genau die Felder, die eine Regel lesen könnte. Eine eigene
+ * Prüfung nur für den Stapel gäbe zwei Wahrheiten über dieselben Papiere, und
+ * eine davon wäre irgendwann die falsche.
+ *
+ * @returns {number} Index des fehlerhaften Blatts, oder -1
+ */
+export function fehlerhaftesBlatt(a, day) {
+  if (!a.sammel) return -1
+  return a.sammel.blaetter.findIndex((b) => findeVerstoesse(b, day).length > 0)
+}
+
+/**
+ * War die Entscheidung über einen Stapel richtig?
+ *
+ * Drei Wege, und nur zwei davon sind richtig:
+ *
+ *   Fehler im Stapel  + genau dieses Blatt beanstandet  → richtig
+ *   Fehler im Stapel  + ein anderes Blatt beanstandet   → falsch
+ *   Fehler im Stapel  + geschlossen angenommen          → falsch
+ *   Stapel sauber     + geschlossen angenommen          → richtig
+ *   Stapel sauber     + irgendein Blatt beanstandet     → falsch
+ *
+ * @param {number|null} gewaehlt  gekennzeichnetes Blatt, oder null
+ */
+export function pruefeStapel(a, day, entscheidung, gewaehlt) {
+  const fehler = fehlerhaftesBlatt(a, day)
+  const verstoesse = fehler >= 0 ? findeVerstoesse(a.sammel.blaetter[fehler], day) : []
+  const richtig =
+    entscheidung === 'deny' ? gewaehlt === fehler && fehler >= 0 : fehler < 0
+
+  return {
+    richtig,
+    verstoesse,
+    solltePassieren: fehler < 0,
+    anweisung: null,
+    befolgt: null,
+    fehler,
+  }
+}
+
+/**
  * War die Entscheidung richtig?
  * @param {'ok'|'deny'} entscheidung
  */
-export function pruefeEntscheidung(a, day, entscheidung) {
+export function pruefeEntscheidung(a, day, entscheidung, gewaehlt = null) {
+  // Ein Stapel wird nicht bejaht oder verneint, sondern durchgesehen.
+  if (a.sammel) return pruefeStapel(a, day, entscheidung, gewaehlt)
+
   const verstoesse = findeVerstoesse(a, day)
   const solltePassieren = verstoesse.length === 0
   const anweisung = anweisungFuer(a, day, verstoesse.length)

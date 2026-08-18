@@ -7,6 +7,7 @@ import { PHASE, reduce, neuerStand, laden, speichern, loeschen } from './game/sp
 import ExcuseNote from './components/ExcuseNote.jsx'
 import StudentFile from './components/StudentFile.jsx'
 import Attest, { zeitraumText } from './components/Attest.jsx'
+import Sammelvorlage from './components/Sammelvorlage.jsx'
 import Klausurplan from './components/Klausurplan.jsx'
 import Geldschein from './components/Geldschein.jsx'
 import Lupe from './components/Lupe.jsx'
@@ -142,6 +143,11 @@ function Schalter({ stand, info, dispatch }) {
   const [markiert, setMarkiert] = useState([])
   const [erwiderung, setErwiderung] = useState(null)
   const [aufgedeckt, setAufgedeckt] = useState(() => new Set())
+  // Bei einer Sammelvorlage: welcher der fünf Vorgänge ist gekennzeichnet?
+  // `null` heißt „keiner" und ist etwas anderes als „noch nicht geprüft" –
+  // der Unterschied entscheidet, ob der rote Stempel greift oder nachfragt.
+  const [gewaehlt, setGewaehlt] = useState(null)
+  const [nachfrage, setNachfrage] = useState(false)
   const timer = useRef(null)
   const antwortUhr = useRef(null)
 
@@ -286,6 +292,8 @@ function Schalter({ stand, info, dispatch }) {
     setMarkiert([])
     setErwiderung(null)
     setAufgedeckt(new Set())
+    setGewaehlt(null)
+    setNachfrage(false)
     clearTimeout(antwortUhr.current)
     const t = setTimeout(() => {
       setAngekommen(true)
@@ -327,7 +335,10 @@ function Schalter({ stand, info, dispatch }) {
    * nicht mehr – der Vorgang ist dann entschieden, und eine Rückfrage danach
    * wäre eine Rückfrage an eine Akte.
    */
-  const widerspruchAktiv = angekommen && !stamp && info.tag >= WIDERSPRUCH_AB
+  // Bei einer Sammelvorlage gibt es nichts vorzuhalten: Herr Brenner hat die
+  // Zettel eingesammelt, nicht geschrieben. Ihn mit dem Datum eines fremden
+  // Kindes zu konfrontieren wäre keine Frage an den Richtigen.
+  const widerspruchAktiv = angekommen && !stamp && info.tag >= WIDERSPRUCH_AB && !a.sammel
 
   const feldWaehlen = useCallback(
     (feld) => {
@@ -376,11 +387,22 @@ function Schalter({ stand, info, dispatch }) {
    */
   const antippen = useCallback(
     (e) => {
+      const unterm = document.elementsFromPoint(e.clientX, e.clientY)
+
+      // Eine Zeile der Sammelvorlage kennzeichnen. Nochmal darauf hebt die
+      // Kennzeichnung wieder auf – man soll eine Wahl zurücknehmen können,
+      // ohne den ganzen Stapel abgeben zu müssen.
+      const zeile = unterm.map((el) => el.closest?.('[data-zeile]')).find(Boolean)
+      if (zeile) {
+        const nr = Number(zeile.dataset.zeile)
+        spiele('klick')
+        setNachfrage(false)
+        setGewaehlt((alt) => (alt === nr ? null : nr))
+        return
+      }
+
       if (!widerspruchAktiv) return
-      const treffer = document
-        .elementsFromPoint(e.clientX, e.clientY)
-        .map((el) => el.closest?.('[data-feld]'))
-        .find(Boolean)
+      const treffer = unterm.map((el) => el.closest?.('[data-feld]')).find(Boolean)
       if (treffer) feldWaehlen(treffer.dataset.feld)
     },
     [widerspruchAktiv, feldWaehlen],
@@ -391,7 +413,27 @@ function Schalter({ stand, info, dispatch }) {
       // Auch die Tastatur: Ohne diese Sperre stempelte man einen leeren
       // Tresen, während der Vorgang noch durch den Flur läuft.
       if (stamp || !angekommen) return
-      const { richtig, verstoesse, anweisung, befolgt } = pruefeEntscheidung(a, info.tag, kind)
+
+      // Ein Stapel lässt sich nicht pauschal zurückweisen.
+      //
+      // Statt daraus eine Fehlentscheidung zu machen, fragt das Spiel nach.
+      // Wer zum ersten Mal eine Sammelvorlage vor sich hat, kann nicht wissen,
+      // dass hier ein Schritt davor kommt – und eine Mechanik, die man beim
+      // ersten Versuch falsch bedienen kann, muss beim ersten Versuch
+      // nachfragen statt zu bestrafen.
+      if (a.sammel && kind === 'deny' && gewaehlt === null) {
+        setNachfrage(true)
+        spiele('klick')
+        return
+      }
+      setNachfrage(false)
+
+      const { richtig, verstoesse, anweisung, befolgt } = pruefeEntscheidung(
+        a,
+        info.tag,
+        kind,
+        gewaehlt,
+      )
 
       setStamp(kind)
       setFeedback({ richtig, verstoesse, anweisung, befolgt })
@@ -430,7 +472,7 @@ function Schalter({ stand, info, dispatch }) {
         dispatch({ typ: 'NAECHSTER' })
       }, 1900)
     },
-    [a, stamp, angekommen, aufgedeckt, info.tag, dispatch],
+    [a, stamp, angekommen, aufgedeckt, gewaehlt, info.tag, dispatch],
   )
 
   useEffect(() => {
@@ -604,7 +646,32 @@ function Schalter({ stand, info, dispatch }) {
                 Bedingung: Beide gehören dem Tag, nicht dem Vorgang. Der Aushang
                 ist zugleich das einzige, was man während des Anmarsches lesen
                 kann, und genau dafür ist er dort richtig. */}
-            {angekommen && (
+            {/* Eine Sammelvorlage ersetzt Entschuldigung, Attest und Akte:
+                Zu fünf fremden Kindern liegt hier keine Akte, und genau
+                deshalb greifen auf dem Stapel nur die drei Regeln, die mit
+                dem Zettel allein auskommen. Der Klausuraushang bleibt liegen –
+                er ist bei fünf Klassen erst recht nötig. */}
+            {angekommen && a.sammel && (
+              <Ziehbar
+                key={`s-${a.id}`}
+                // Rechts an der Statusleiste vorbei und über dem
+                // Klausuraushang, nicht auf ihm: Bei fünf Klassen ist der
+                // Aushang das zweite Blatt, das offen liegen muss.
+                start={{ x: Math.max(292, startNotiz.x + 70), y: 26 }}
+                z={zVon('notiz')}
+                onVorn={() => nachVorn('notiz')}
+                onTipp={antippen}
+              >
+                <Sammelvorlage
+                  applicant={a}
+                  gewaehlt={gewaehlt}
+                  gesperrt={!!stamp}
+                  stamped={stamp ? <Stamp kind={stamp} rotate={-11} size={168} /> : null}
+                />
+              </Ziehbar>
+            )}
+
+            {angekommen && !a.sammel && (
               <>
                 <Ziehbar
                   key={`n-${a.id}`}
@@ -707,6 +774,15 @@ function Schalter({ stand, info, dispatch }) {
                 dieser Zeile alles Mögliche landen – auf einem breiten
                 Bildschirm schon von Haus aus die Entschuldigung. Ein Hinweis,
                 der im Papier steht, liest sich wie ein Druckfehler. */}
+            {/* Die Rückfrage, wenn jemand einen Stapel pauschal zurückweisen
+                will. Rot wie der Stempel, den sie gerade abgefangen hat, und
+                an derselben Stelle wie die übrigen Hinweise. */}
+            {nachfrage && !stamp && (
+              <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-stamp-deny/50 bg-desk-900/90 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-stamp-deny">
+                Welcher Vorgang wird beanstandet?
+              </p>
+            )}
+
             {info.tag === WIDERSPRUCH_AB && stand.index === 0 && angekommen && !stamp && !erwiderung && (
               <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-brass/25 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-brass/75">
                 Zwei Angaben antippen, um sie vorzuhalten

@@ -389,6 +389,109 @@ genau das, wofür er da ist.
 Das Wählen dauert gut zwei Sekunden – Scheibe zurück, zwei Rufzeichen. Auch
 das ist Absicht: Ein Anruf soll sich nach „das dauert jetzt" anfühlen.
 
+## Der Lehrer mit dem Stapel
+
+Alle 132 Vorgänge hatten dieselbe Form: eine Person, ein Zettel, zwei Stempel.
+Störungen, Anordnungen und beschädigte Papiere färben einen Vorgang ein, aber
+sie ändern nicht, was er **ist**. An Tag 8 und Tag 10 steht deshalb etwas
+anderes am Schalter.
+
+Herr Brenner ist Jahrgangsstufenleiter und reicht die Entschuldigungen seines
+Jahrgangs gesammelt ein. Vor dir liegen fünf Vorgänge auf einmal, und die Frage
+ist nicht mehr „ja oder nein", sondern:
+
+> **Welcher von diesen fünf?**
+
+Ein anderes Verb – nicht entscheiden, sondern heraussuchen –, und es braucht
+kein neues Werkzeug: Wer einen Vorgang beanstandet, kennzeichnet ihn und
+stempelt rot; wer nichts findet, nimmt den Stapel geschlossen an. Dieselben
+zwei Stempel wie immer, nur mit einem Schritt davor.
+
+### Warum der Jahrgang und nicht eine Klasse
+
+Ein Klassenlehrer brächte fünf Zettel derselben Klasse – und dann träfe die
+Klausurregel entweder alle fünf oder keinen. Aus „welcher von diesen" würde
+„alle oder keiner", und die ganze Form wäre umsonst. Beim Jahrgang hat jeder
+Zettel seine eigene Klasse, und der Aushang muss fünfmal nachgeschlagen werden.
+Genau dafür hängt er da.
+
+### Nur drei Regeln greifen
+
+Auf einem Sammelblatt steht kein Lichtbild, keine hinterlegte Unterschrift und
+kein Sperrvermerk – zu fünf fremden Kindern liegt keine Akte auf dem Tisch.
+Prüfbar sind die Regeln, die mit dem Zettel allein auskommen: **§2
+Ausstellungsdatum, §3 Attestpflicht, §5 Klausurtage.**
+
+Das ist keine Einschränkung, sondern der Grund für die Form. §5 ist die einzige
+Regel, bei der man nicht zwei Felder vergleicht, sondern auf einem zweiten Blatt
+nachschlägt – und sie kam im ganzen Spiel dreimal vor.
+
+Der Widerspruch ist bei einer Sammelvorlage abgeschaltet: Herr Brenner hat die
+Zettel eingesammelt, nicht geschrieben. Ihn mit dem Datum eines fremden Kindes
+zu konfrontieren wäre keine Frage an den Richtigen.
+
+### Verstanden wird es an vier Stellen gleichzeitig
+
+Zwölf Tage lang bedeutete jeder Vorgang „grün oder rot". Wer den zusätzlichen
+Schritt nicht sofort begreift, stempelt einfach grün und erfährt nie, dass es
+hier etwas anderes zu tun gab. Vier Dinge sagen es, ohne dass ein Kasten mit
+einer Bedienungsanleitung aufgeht:
+
+1. Der Lehrer sagt es beim Hinlegen: „Wenn einer nicht in Ordnung ist, sagen
+   Sie mir welcher."
+2. Auf dem Kopf des Formulars steht die Anweisung im Amtston, so wie sie auf
+   einem echten Sammelbogen stünde.
+3. Die Zeilen sehen anklickbar aus: nummeriert, mit einem leeren Ankreuzfeld
+   am Rand.
+4. Wer trotzdem rot stempelt, ohne etwas gekennzeichnet zu haben, bekommt
+   **keine Fehlentscheidung, sondern eine Rückfrage**: „Welcher Vorgang wird
+   beanstandet?"
+
+Der vierte Punkt ist der entscheidende. Eine Mechanik, die man beim ersten
+Versuch falsch bedienen *kann*, muss beim ersten Versuch nachfragen statt zu
+bestrafen.
+
+### Der zweite Stapel ist sauber
+
+Läge in beiden ein Fehler, lernte man „bei Brenner ist immer einer dabei" und
+suchte nur noch, bis man ihn gefunden hat. Der zweite Stapel ist in Ordnung –
+und man erfährt das erst, indem man alle fünf durchgeht.
+
+### Tag 8 ist ausgemessen, nicht gewählt
+
+Tag 7 wäre die naheliegende Stelle gewesen: der ruhigste späte Tag. Er kostete
+aber den Lichtbildabgleich zwei seiner vier Vorkommen, weil der Stapel einen
+Platz belegt und an Tag 7 ausgerechnet §6 eingeführt wird. Vier Tage
+durchgerechnet:
+
+| Tag | Klausurtage | Lichtbildabgleich | |
+| --- | --- | --- | --- |
+| 7 | 5 | **2** | frisst die neue Regel |
+| **8** | **4** | **3** | gewählt |
+| 9 | 5 | 3 | aber Attestpflicht 12→10, und Tag 9 ist ohnehin der vollste |
+| 12 | 5 | 3 | aber Attestzeitraum 3→2, und der letzte Tag gehört dem Abschied |
+
+### Ein Balancing-Versuch, der nicht funktioniert hat
+
+Eine Auszählung hatte gezeigt: Klausurtage kam über zwölf Tage nur dreimal vor –
+in vier Prozent aller Vorgänge. Der naheliegende Schluss war, jede Regel alle
+vier Tage zu erzwingen. Zwei Fassungen wurden gebaut und durchgerechnet:
+
+| Fassung | Ergebnis |
+| --- | --- |
+| Umwidmung eines zufälligen Platzes | Klausur 3→5, **Lichtbild 4→2** |
+| Umwidmung vom ältesten Verstoß | Klausur 3→5, **Lichtbild 4→2** |
+
+Beide Male wanderte das Problem nur weiter. Umwidmen ist ein Nullsummenspiel:
+Bei rund 48 Verstößen auf acht Regeln lässt sich keine anheben, ohne eine andere
+zu senken, und bei sechs Verstößen am Tag wären drei erzwungene Plätze die halbe
+Schicht. Die Spanne blieb bei 2 bis 12.
+
+Die Zusicherung bleibt deshalb beim Einführungstag. Das eigentliche Problem –
+§5 kommt zu selten vor, um im Gedächtnis zu bleiben – löst die Sammelvorlage
+besser als jede Umverteilung: An zwei Tagen liegen fünf Klassen auf einmal da,
+die alle gegen den Aushang zu prüfen sind.
+
 ## Der Widerspruch
 
 Bis hierher hatte das Spiel genau zwei Entscheidungsverben: links stempeln,
@@ -1033,9 +1136,8 @@ ergäbe bei rund 120 Vorgängen über zwölf Tage aber Fleißarbeit statt Haptik
 Die beiden großen Punkte der ursprünglichen Liste – ein Finale für Tag 12 und
 die Widerspruchs-Mechanik – stehen. Offen ist:
 
-1. Nicht jeder am Schalter ist ein Schüler: ein Lehrer mit einem Stapel
-   Entschuldigungen für seine Klasse, ein Elternteil, das persönlich kommt.
-   Das bricht „eine Person, ein Zettel" strukturell auf
+1. Ein Elternteil, das persönlich kommt – der Lehrer mit dem Stapel steht,
+   ein Erwachsener am Schalter ändert aber auch den Ton eines Einzelvorgangs
 2. Mobiles Layout. Bis dahin steht unter 1024 px ein Hinweis statt eines
    Rätsels
 

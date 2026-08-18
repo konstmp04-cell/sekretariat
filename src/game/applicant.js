@@ -16,6 +16,7 @@ import { anweisungFuerTag, passendMachen } from './anweisungen.js'
 import { kuriositaetAmTag, kuriosumAnwenden, KURIOSUM } from './kuriositaeten.js'
 import { ausgesetzteRegel } from './stoerungen.js'
 import { zustandAmTag, zustandAnwenden } from './zustand.js'
+import { sammelAmTag, LEHRER, BLAETTER } from './sammelvorlage.js'
 
 // Nach Geschlecht getrennt, damit die Entschuldigung „meine Tochter Lena"
 // bzw. „mein Sohn Jonas" schreiben kann. Vorher wurde Sohn/Tochter daraus
@@ -339,6 +340,126 @@ export function makeApplicant(day, index, verstoss = VERSTOSS.KEINER, figur = nu
 }
 
 /**
+ * Ein Lehrer mit einem Stapel statt eines Schülers mit einem Zettel.
+ *
+ * Gebaut wird in zwei Schritten: erst fünf einwandfreie Zettel, dann wird
+ * höchstens einer davon verdorben. Umgekehrt – erst einen fehlerhaften bauen
+ * und die anderen daneben – ginge schief, sobald ein zufällig gezogener Grund
+ * vier Fehltage hat und damit still einen zweiten Verstoß erzeugt. Aus
+ * „welcher von den fünf" würde dann „welcher von den zweien", ohne dass es
+ * jemand merkt.
+ */
+export function machSammelvorlage(day, index, sam) {
+  const seed = hashSeed(`d${day}-i${index}-sammel`)
+  const { range, int, pick } = rngHelpers(makeRng(seed))
+  const heute = 8 + day
+
+  const plan = klausurplan(day)
+  const mitKlausur = new Set(plan.map((e) => e.klasse))
+  const ohneKlausur = KLASSEN.filter((k) => !mitKlausur.has(k))
+
+  // Jeder Zettel eine eigene Klasse – sonst wäre der Aushang einmal
+  // nachzuschlagen statt fünfmal, und die Form verlöre ihren Sinn.
+  const klassen = []
+  while (klassen.length < BLAETTER) {
+    const k = pick(ohneKlausur)
+    if (!klassen.includes(k)) klassen.push(k)
+  }
+
+  const namen = []
+  while (namen.length < BLAETTER) {
+    const weiblich = int(0, 1) === 1
+    const name = `${pick(ohneFiguren(weiblich ? VORNAMEN_W : VORNAMEN_M))} ${pick(ohneFiguren(NACHNAMEN))}`
+    if (!namen.includes(name)) namen.push(name)
+  }
+
+  const blaetter = klassen.map((klasse, i) => {
+    const grund = pick(GRUENDE)
+    const von = heute - grund.tage
+    const bis = heute - 1
+    return {
+      id: `${day}-${index}-b${i}`,
+      name: namen[i],
+      nameAufNotiz: namen[i],
+      klasse,
+      grund: grund.text,
+      tage: grund.tage,
+      fehltagVon: von,
+      fehltagBis: bis,
+      // Am Tag der Vorlage ausgestellt: nie vor dem ersten Fehltag.
+      datumNotiz: heute,
+      // Ab drei Tagen liegt eines bei, sonst wäre der Zettel schon deshalb
+      // zu beanstanden.
+      attest: grund.tage >= 3 ? { von, bis } : null,
+      // Neutral für die Regeln, die auf einem Sammelblatt nicht prüfbar sind.
+      // Sie stehen ausdrücklich da, statt zu fehlen: findeVerstoesse liest
+      // diese Felder, und ein `undefined` an der falschen Stelle wäre ein
+      // stiller Verstoß, den niemand sehen kann.
+      forgery: 0,
+      sperrvermerk: false,
+      face: null,
+      aktenFoto: null,
+    }
+  })
+
+  // --- Höchstens einen verderben ----------------------------------------
+  let fehlerhaft = -1
+  if (sam.verstoss !== VERSTOSS.KEINER) {
+    fehlerhaft = int(0, BLAETTER - 1)
+    const b = blaetter[fehlerhaft]
+    switch (sam.verstoss) {
+      case VERSTOSS.KLAUSUR:
+        // Seine Klasse schreibt heute, und es liegt nichts vom Arzt bei.
+        // Die Fehltage werden kurz gehalten, damit nicht zusätzlich die
+        // Attestpflicht greift – ein Zettel mit zwei Verstößen wäre nicht
+        // schwerer zu finden, aber die Rückmeldung nennte den falschen Grund.
+        b.klasse = pick(plan).klasse
+        b.tage = int(1, 2)
+        b.fehltagVon = heute - b.tage
+        b.fehltagBis = heute - 1
+        b.attest = null
+        break
+      case VERSTOSS.ATTEST_FEHLT:
+        b.tage = int(3, 5)
+        b.fehltagVon = heute - b.tage
+        b.fehltagBis = heute - 1
+        b.attest = null
+        break
+      case VERSTOSS.DATUM:
+        b.datumNotiz = b.fehltagVon - int(1, 3)
+        break
+      default:
+        break
+    }
+  }
+
+  return {
+    id: `${day}-${index}`,
+    seed,
+    // Herr Brenner sieht an beiden Tagen gleich aus – wie die Stammgäste
+    // hängt seine Erscheinung an ihm und nicht am Tag.
+    face: makeFace(hashSeed('lehrer-brenner'), false),
+    aktenFoto: null,
+    name: LEHRER.name,
+    vorname: 'Herr',
+    nachname: 'Brenner',
+    klasse: LEHRER.amt,
+    weiblich: false,
+    figur: null,
+    auftritt: null,
+    verstoss: sam.verstoss,
+    forgery: 0,
+    sperrvermerk: false,
+    attest: null,
+    zustand: null,
+    nervoes: false,
+    spruch: sam.spruch,
+    tilt: range(-2, 2),
+    sammel: { lehrer: LEHRER, blaetter, fehlerhaft },
+  }
+}
+
+/**
  * Stellt die Warteschlange eines Tages zusammen.
  * Die Fehlerquote steigt mit dem Tag, bleibt aber immer unter der Hälfte –
  * sonst kippt das Spiel von "prüfen" zu "grundsätzlich misstrauen".
@@ -417,7 +538,7 @@ export function buildQueue(day, laenge = 8) {
   }))
 
   const freieStellen = () =>
-    zuteilung.map((z, i) => (!z.figur && i > 0 ? i : -1)).filter((i) => i >= 0)
+    zuteilung.map((z, i) => (!z.figur && !z.sammel && i > 0 ? i : -1)).filter((i) => i >= 0)
 
   // Stammgäste zuerst: Ihre Auftritte stehen im Drehbuch und dürfen nicht
   // von einer nachträglich eingesetzten Regel verdrängt werden. Sie zählen
@@ -436,12 +557,28 @@ export function buildQueue(day, laenge = 8) {
     zuteilung[stelle] = { verstoss: auftritt.verstoss, figur, auftritt }
   }
 
+  // Die Sammelvorlage belegt einen Platz wie ein Stammgast: vorher reserviert,
+  // damit ihr nicht nachträglich ein Verstoß zugewiesen wird, den es auf einem
+  // Sammelblatt gar nicht geben kann. Sie zählt in die Quote hinein, statt
+  // obendrauf zu kommen – ein Stapel ist ein Vorgang.
+  const sam = sammelAmTag(day)
+  if (sam) {
+    const frei = freieStellen().filter((i) => i < laenge - 1)
+    // Möglichst in der Tagesmitte: Am Anfang stünde der Bruch der Form vor
+    // allem anderen, am Ende ginge er in der Abrechnung unter.
+    const mitte = Math.floor(laenge / 2)
+    const stelle = frei.length
+      ? frei.reduce((a, b) => (Math.abs(b - mitte) < Math.abs(a - mitte) ? b : a))
+      : 1
+    zuteilung[stelle] = { verstoss: sam.verstoss, figur: null, auftritt: null, sammel: sam }
+  }
+
   const fehlerZahl = () => zuteilung.filter((z) => z.verstoss !== VERSTOSS.KEINER).length
 
   // Restliche Verstöße auf zufällige freie Plätze verteilen (Fisher-Yates,
   // damit jede Anordnung gleich wahrscheinlich ist).
   const offen = zuteilung
-    .map((z, i) => (!z.figur && z.verstoss === VERSTOSS.KEINER ? i : -1))
+    .map((z, i) => (!z.figur && !z.sammel && z.verstoss === VERSTOSS.KEINER ? i : -1))
     .filter((i) => i >= 0)
   for (let i = offen.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1))
@@ -460,18 +597,44 @@ export function buildQueue(day, laenge = 8) {
   // dann etwas an, das den ganzen Tag nicht vorkommt, und genau der Moment,
   // der das Spiel antreibt, läuft ins Leere.
   //
+  // NUR am Einführungstag, und das ist eine gemessene Entscheidung.
+  //
+  // Eine Auszählung hatte gezeigt, dass Klausurtage über zwölf Tage nur
+  // dreimal vorkommt – ausgerechnet die Regel, bei der man nicht zwei Felder
+  // vergleicht, sondern auf einem zweiten Blatt nachschlägt. Der naheliegende
+  // Schluss war, jede Regel alle vier Tage zu erzwingen. Zwei Fassungen davon
+  // wurden gebaut und durchgerechnet:
+  //
+  //   Umwidmung eines zufälligen Platzes   Klausur 3→5, Lichtbild 4→2
+  //   Umwidmung vom ältesten Verstoß       Klausur 3→5, Lichtbild 4→2
+  //
+  // Beide Male wanderte das Problem nur weiter. Umwidmen ist ein
+  // Nullsummenspiel: Bei rund 48 Verstößen auf acht Regeln lässt sich keine
+  // anheben, ohne eine andere zu senken, und bei sechs Verstößen am Tag wären
+  // drei erzwungene Plätze die halbe Schicht – der Rest wäre kaum noch
+  // gewürfelt. Die Spanne blieb bei 2 bis 12.
+  //
+  // Die Zusicherung bleibt deshalb beim Einführungstag. Das eigentliche
+  // Problem – §5 kommt zu selten vor, um im Gedächtnis zu bleiben – löst die
+  // Sammelvorlage besser als jede Umverteilung: An zwei Tagen liegen fünf
+  // Klassen auf einmal da, die alle gegen den Aushang zu prüfen sind.
+  //
   // Umgewidmet wird ein bestehender Verstoß, statt einen weiteren anzulegen –
   // sonst überschriebe die Zusicherung die eben erst gesetzte Quote.
   for (const regel of neueRegeln(day)) {
     if (zuteilung.some((z) => z.verstoss === regel.id)) continue
     const belegt = zuteilung
-      .map((z, i) => (!z.figur && z.verstoss !== VERSTOSS.KEINER && i > 0 ? i : -1))
+      .map((z, i) => (!z.figur && !z.sammel && z.verstoss !== VERSTOSS.KEINER && i > 0 ? i : -1))
       .filter((i) => i >= 0)
     const stelle = belegt.length ? pick(belegt) : (freieStellen()[0] ?? 1)
     zuteilung[stelle].verstoss = regel.id
   }
 
-  const schlange = zuteilung.map((z, i) => makeApplicant(day, i, z.verstoss, z.figur, z.auftritt))
+  const schlange = zuteilung.map((z, i) =>
+    z.sammel
+      ? machSammelvorlage(day, i, z.sammel)
+      : makeApplicant(day, i, z.verstoss, z.figur, z.auftritt),
+  )
 
   // Gilt heute eine Anweisung, muss sie auch jemanden treffen.
   //
@@ -484,7 +647,7 @@ export function buildQueue(day, laenge = 8) {
   const anw = anweisungFuerTag(day)
   if (anw && !schlange.some((a) => a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))) {
     const kandidaten = schlange
-      .map((a, i) => (a.verstoss === VERSTOSS.KEINER && i > 0 ? i : -1))
+      .map((a, i) => (a.verstoss === VERSTOSS.KEINER && !a.sammel && i > 0 ? i : -1))
       .filter((i) => i >= 0)
     if (kandidaten.length) {
       const stelle = pick(kandidaten)
@@ -509,6 +672,9 @@ export function buildQueue(day, laenge = 8) {
     const heuteNeu = new Set(neueRegeln(day).map((r) => r.id))
     const frei = (a, i) =>
       i > 0 &&
+      // Ein Gag auf einem Sammelblatt ginge zwischen fünf Zetteln unter, und
+      // die Kuriositäten verändern Felder, die es dort gar nicht gibt.
+      !a.sammel &&
       // Der letzte Vorgang gehört an Tag 12 dem Abschied. Ein Gag an dieser
       // Stelle wäre nicht bloß fehl am Platz, er stünde im Weg.
       i < laenge - 1 &&
@@ -563,6 +729,7 @@ export function buildQueue(day, laenge = 8) {
       i > 0 &&
       i < laenge - 1 &&
       !a.figur &&
+      !a.sammel &&
       !a.kuriosum &&
       a.verstoss === verstoss &&
       !(anw && a.verstoss === VERSTOSS.KEINER && anw.betrifft(a))
