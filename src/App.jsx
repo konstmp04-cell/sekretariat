@@ -26,6 +26,7 @@ import TonKnopf from './components/TonKnopf.jsx'
 import Ziehbar from './components/Ziehbar.jsx'
 import Zerrissen from './components/Zerrissen.jsx'
 import Flur, { ANMARSCH_MS } from './components/Flur.jsx'
+import Vorzimmer from './components/Vorzimmer.jsx'
 import Telefon from './components/Telefon.jsx'
 import Buehne, { skalaFuer } from './components/Buehne.jsx'
 import { lichtFuer, fortschrittImTag } from './game/licht.js'
@@ -519,6 +520,11 @@ function Schalter({ stand, info, dispatch }) {
                 'repeating-linear-gradient(180deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 44px)',
             }}
           />
+          {/* Das Vorzimmer steht VOR der Tagesfarbe: Die Einrichtung wird von
+              ihr mitgetönt und tritt hinter die Menschen zurück, die erst
+              danach gezeichnet werden. */}
+          <Vorzimmer fortschritt={fortschrittImTag(stand.index, info.anzahl)} />
+
           {/* Ein Hauch der Tagesfarbe über die ganze Wand – ohne ihn leuchtet
               der Pool unten in einer Wand, die davon nichts mitbekommt. */}
           <div
