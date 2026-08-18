@@ -131,7 +131,7 @@ function Naht({ punkte }) {
  *   dem Glas den vollständigen Zeitraum von einer Hälfte ab, auf der er
  *   physisch gar nicht steht. Der Riss wäre damit umsonst.
  */
-export default function Zerrissen({ seed, startA, startB, z = 1, onVorn, blatt }) {
+export default function Zerrissen({ seed, startA, startB, z = 1, onVorn, onTipp, blatt }) {
   const punkte = useMemo(() => risslinie(seed), [seed])
   const clip = useMemo(() => beschnitt(punkte), [punkte])
 
@@ -169,7 +169,7 @@ export default function Zerrissen({ seed, startA, startB, z = 1, onVorn, blatt }
 
   if (ganz) {
     return (
-      <Ziehbar key="ganz" start={lage.current.a} z={z} onVorn={onVorn}>
+      <Ziehbar key="ganz" start={lage.current.a} z={z} onVorn={onVorn} onTipp={onTipp}>
         <div className="relative">
           {blatt({ animiert: false, gefuegt: true })}
           <Naht punkte={punkte} />
@@ -185,6 +185,7 @@ export default function Zerrissen({ seed, startA, startB, z = 1, onVorn, blatt }
         start={startA}
         z={z}
         onVorn={onVorn}
+        onTipp={onTipp}
         melde={meldeA}
         schnapp={schnappA}
         stil={{ clipPath: clip.links, filter: schein }}
@@ -196,6 +197,7 @@ export default function Zerrissen({ seed, startA, startB, z = 1, onVorn, blatt }
         start={startB}
         z={z + 1}
         onVorn={onVorn}
+        onTipp={onTipp}
         melde={meldeB}
         schnapp={schnappB}
         stil={{ clipPath: clip.rechts, filter: schein }}

@@ -389,6 +389,105 @@ genau das, wofür er da ist.
 Das Wählen dauert gut zwei Sekunden – Scheibe zurück, zwei Rufzeichen. Auch
 das ist Absicht: Ein Anruf soll sich nach „das dauert jetzt" anfühlen.
 
+## Der Widerspruch
+
+Bis hierher hatte das Spiel genau zwei Entscheidungsverben: links stempeln,
+rechts stempeln. Lupe und Telefon helfen beim Herausfinden, entscheiden aber
+nichts. Und wer einen Fehler fand, stempelte ab – der Schüler sagte dazu kein
+Wort. Der Moment, in dem man jemandem zeigt, was man gefunden hat, fehlte
+vollständig.
+
+Ab Tag 2 tippt man zwei Angaben nacheinander an und hält sie ihm hin.
+
+### Wozu, wenn es nichts zu erfahren gibt?
+
+Das ist die eigentliche Frage, denn eine Auskunft gibt es hier nicht zu holen:
+Wer einen Verstoß gesehen hat, weiß ihn auch ohne Nachfrage. Der Gewinn liegt
+woanders.
+
+> **Das Spiel kann jetzt „übersehen" von „durchgehen lassen" unterscheiden.**
+
+Wer blind abstempelt, hat den Fehler vielleicht nicht gesehen. Wer erst
+konfrontiert und **danach** „entschuldigt" stempelt, hat sich entschieden. Das
+ist kein Buchhaltungsdetail, sondern der Unterschied zwischen Schlamperei und
+Milde – und bis jetzt konnte das Spiel ihn nicht sehen. Am Ende steht er im
+Zeugnis als eigene Zeile, das Rektorat rechnet ihn zusätzlich an, und die
+Schülerschaft dankt ihn ganz anders als ein Versehen.
+
+### Drei Ausgänge
+
+| Ausgang | Was er bedeutet | Was er kostet |
+| --- | --- | --- |
+| **Ertappt** | Der Widerspruch besteht wirklich | −1 bei der Schülerschaft |
+| **Daneben** | Die Felder gehören zusammen, widersprechen sich aber nicht | −4 bei der Schülerschaft |
+| **Kein Paar** | Die Felder haben miteinander nichts zu tun | nichts |
+
+Der letzte Fall ist wichtig: Ein Vergreifen in der Bedienung ist keine
+Anschuldigung und wird auch nicht wie eine behandelt. So lässt sich die
+Paartabelle gefahrlos lernen – und weil sie über alle Tage dieselbe bleibt,
+verrät das Ausprobieren nichts über den Fall, der gerade auf dem Tisch liegt.
+
+Das Vierfache für einen unberechtigten Vorwurf ist der ganze Grund, warum sich
+die Tabelle nicht einfach am lebenden Objekt durchprobieren lässt: Bei acht
+Paaren auf 132 Vorgänge wäre systematisches Abklappern sonst die beste
+Strategie, und das Prüfen wäre wieder wertlos – dieselbe Rechnung wie bei den
+zwei Anrufen am Tag.
+
+### Acht Paare, und jedes ist eindeutig
+
+| Regel | Die beiden Angaben |
+| --- | --- |
+| §1 Unterschrift | Unterschrift auf der Notiz ↔ hinterlegte Unterschrift |
+| §2 Ausstellungsdatum | Datum ↔ Fehltage |
+| §3 Attestpflicht | Fehltage ↔ die Person am Fenster |
+| §4 Namensabgleich | Name auf der Notiz ↔ Name in der Akte |
+| §5 Klausurtage | Klasse ↔ Aushang |
+| §6 Lichtbildabgleich | Aktenfoto ↔ die Person am Fenster |
+| §7 Attestzeitraum | Attestzeitraum ↔ Fehltage |
+| §8 Sperrvermerk | Sperrvermerk ↔ die Person am Fenster |
+
+„Fehltage" kommt dreimal vor, „die Person" ebenfalls – aber nie mit demselben
+Gegenüber. Ohne diese Eindeutigkeit müsste das Spiel raten, was gemeint war,
+und die Antwort fiele gelegentlich auf die falsche Regel. Ein Prüfskript
+rechnet alle 12 × 12 Kombinationen durch und schlägt Alarm, sobald zwei Felder
+auf zwei Regeln passen.
+
+### Milans Lüge bröckelt
+
+Der eigentliche Grund für die ganze Mechanik. Milan wird über vier Tage viermal
+mit derselben gefälschten Unterschrift konfrontiert. Mit der Regelzeile käme
+viermal derselbe Satz, und aus einem Menschen würde ein Formular:
+
+- **Tag 2** – „Die schreibt schnell, wenn sie es eilig hat. Das ist ihre, ganz sicher."
+- **Tag 5** – „Ich hab Ihnen doch gesagt, dass diesmal alles richtig ist. Gucken Sie noch mal."
+- **Tag 8** – „… Ja. Die ist von mir. Das wissen Sie doch längst."
+- **Tag 11** – „Ja, ich schreibe sie. Soll ich sie um sechs wecken, damit Sie einen Haken machen können?"
+
+Beim vierten Mal hört der Vorhalt auf, ihm etwas nachzuweisen, und fängt an,
+etwas über den zu sagen, der ihn macht.
+
+Emil ist der Gegenfall: Sein Verstoß steht fest, und sein Grund stimmt
+trotzdem. Ihn zu konfrontieren fördert nichts zutage – es zeigt nur, dass man
+ihn zum Sagen gezwungen hat. „Ich weiß. Es fehlt. Ich kann Ihnen nur sagen,
+dass es so war."
+
+### Tippen ist nicht Ziehen
+
+Die Dokumente sind verschiebbar, ihre Felder antippbar – ohne Unterscheidung
+löste jedes Zurechtschieben eine Konfrontation aus. Gemessen wird die Strecke
+zwischen Aufsetzen und Loslassen: über vier Pixel ist es ein Zug, darunter ein
+Tipp. Vier und nicht null, weil auch wer tippt ein bisschen wackelt.
+
+Welches Feld getroffen wurde, ermittelt `document.elementsFromPoint` und nicht
+das Ereignisziel: Seit `setPointerCapture` das Blatt festhält, ist `e.target`
+immer der Blattrahmen und nie das Feld darunter. Dieselbe Technik benutzt die
+Lupe, um zu wissen, worüber sie schwebt.
+
+Die Markierung selbst läuft über einen React-Kontext. Sonst müsste die Menge
+der angetippten Felder durch jedes Dokument durchgereicht werden, nur damit
+ganz unten eine Umrandung erscheint – die Dokumente sollen sagen, **was** ein
+Feld ist, und nichts davon wissen, ob gerade jemand darauf zeigt.
+
 ## Die Lupe
 
 Ab Tag 11 weicht eine Fälschung nur noch in einer einzigen Schlaufe vom
@@ -931,13 +1030,14 @@ ergäbe bei rund 120 Vorgängen über zwölf Tage aber Fleißarbeit statt Haptik
 
 ## Nächste Schritte
 
-In dieser Reihenfolge – jeder Punkt baut auf dem vorherigen auf:
+Die beiden großen Punkte der ursprünglichen Liste – ein Finale für Tag 12 und
+die Widerspruchs-Mechanik – stehen. Offen ist:
 
-1. Ein Finale für Tag 12 – der letzte Tag soll sich als letzter anfühlen und
-   nicht als vierzehnter Vorgang wie jeder andere
-2. Widerspruchs-Mechanik: zwei widersprüchliche Felder anklicken und den
-   Schüler damit konfrontieren. Bisher gibt es genau zwei Verben, links
-   stempeln und rechts stempeln
+1. Nicht jeder am Schalter ist ein Schüler: ein Lehrer mit einem Stapel
+   Entschuldigungen für seine Klasse, ein Elternteil, das persönlich kommt.
+   Das bricht „eine Person, ein Zettel" strukturell auf
+2. Mobiles Layout. Bis dahin steht unter 1024 px ein Hinweis statt eines
+   Rätsels
 
 ## Acht Regeln, drei Arten zu prüfen
 

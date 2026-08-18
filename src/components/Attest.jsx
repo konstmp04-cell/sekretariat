@@ -10,6 +10,7 @@
 
 import Paper from './Paper.jsx'
 import Signature from './Signature.jsx'
+import Feld from './Feld.jsx'
 import { ZUSTAND } from '../game/zustand.js'
 
 const MONAT = 'März'
@@ -172,17 +173,18 @@ export default function Attest({ applicant: a, animiert = true, gefuegt = true }
             verlassen haben. Das ist kein Trostpreis, sondern der eine von
             zwei Wegen, die aus dem Schaden herausführen – der andere ist der
             Anruf bei der Praxis, und der kostet einen von zweien. */}
-        <span
-          className="inline-block font-bold text-ink-900"
-          data-lupe={lesbar ? 'attest-zeitraum' : undefined}
-          style={
-            nass
-              ? { filter: 'blur(2px) contrast(0.55)', opacity: 0.74, letterSpacing: '0.04em' }
-              : undefined
-          }
-        >
-          {zeitraumText(at)}
-        </span>
+        <Feld id="attest-zeitraum" className="font-bold text-ink-900">
+          <span
+            data-lupe={lesbar ? 'attest-zeitraum' : undefined}
+            style={
+              nass
+                ? { filter: 'blur(2px) contrast(0.55)', opacity: 0.74, letterSpacing: '0.04em' }
+                : undefined
+            }
+          >
+            {zeitraumText(at)}
+          </span>
+        </Feld>
       </p>
 
       <div className="flex items-end justify-between">

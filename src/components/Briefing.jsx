@@ -12,6 +12,7 @@ import Schuelerzeitung from './Schuelerzeitung.jsx'
 import { aktiveRegeln, paragraph } from '../game/regeln.js'
 import { anweisungFuerTag } from '../game/anweisungen.js'
 import { stoerungAmTag } from '../game/stoerungen.js'
+import { AB_TAG as WIDERSPRUCH_AB } from '../game/widerspruch.js'
 import { ausgabe } from '../game/zeitung.js'
 import { warnstufe } from '../game/spielstand.js'
 import { spiele, tonFreischalten } from '../game/audio.js'
@@ -106,6 +107,31 @@ export default function Briefing({ info, stand, onStart }) {
                   Die betroffene Prüfung entfällt für heute.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Einmalig am zweiten Tag: die Erlaubnis, nachzufragen.
+              Als Erlass des Rektorats und nicht als Bedienungshinweis –
+              „Zwei Felder antippen" stünde außerhalb der Welt, und ausgerechnet
+              das dritte Verb des Spiels soll nicht wie eine Fußnote der
+              Oberfläche wirken. Der Handgriff selbst steht klein darunter,
+              weil man ihn genau einmal braucht. */}
+          {info.tag === WIDERSPRUCH_AB && (
+            <div
+              className="mb-5 border-2 border-brass/60 px-4 py-3"
+              style={{ background: 'rgb(185 150 89 / 0.10)' }}
+            >
+              <p className="font-form text-[10px] font-bold uppercase tracking-[0.16em] text-ink-900">
+                Erlass · Rückfragen am Schalter
+              </p>
+              <p className="mt-1 text-[12px] leading-snug text-ink-700">
+                Bestehen Zweifel an einem Vorgang, sind die betreffenden Angaben
+                dem Antragsteller vorzuhalten und ist seine Erwiderung
+                aufzunehmen. Von unbegründeten Vorhaltungen ist abzusehen.
+              </p>
+              <p className="mt-2 border-t border-ink-900/20 pt-2 font-form text-[10px] leading-snug text-ink-500">
+                Zwei Angaben nacheinander antippen, um sie vorzuhalten.
+              </p>
             </div>
           )}
 

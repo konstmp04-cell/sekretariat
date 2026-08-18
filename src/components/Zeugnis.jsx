@@ -44,6 +44,11 @@ function alsText(stand, ende, n, quote) {
       `Anordnungen: ${stand.anweisungen.befolgt} befolgt, ${stand.anweisungen.verweigert} nicht`,
     )
   }
+  const kon = stand.konfrontationen ?? { treffer: 0, daneben: 0 }
+  if (kon.treffer + kon.daneben > 0) {
+    zeilen.push(`Widersprüche: ${kon.treffer} berechtigt, ${kon.daneben} unberechtigt`)
+  }
+  if (g.nachsicht > 0) zeilen.push(`Wissentlich durchgewunken: ${g.nachsicht}`)
   if (stand.bestechungen > 0) zeilen.push(`Zuwendungen angenommen: ${stand.bestechungen}`)
   zeilen.push(`Ansehen: Rektorat ${Math.round(stand.ruf.rektor)} % · Schülerschaft ${Math.round(stand.ruf.schueler)} %`)
   return zeilen.join('\n')
@@ -90,6 +95,8 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
   const endText = ENDTEXTE[ende] ?? ENDTEXTE[ENDE.GESCHAFFT]
   const durchgewunken = g.verstoesse - g.erwischt
   const anweisungenGesamt = stand.anweisungen.befolgt + stand.anweisungen.verweigert
+  const kon = stand.konfrontationen ?? { treffer: 0, daneben: 0 }
+  const widersprueche = kon.treffer + kon.daneben
   // Bei Freistellung wird kein Zeugnis ausgestellt, sondern ein Bescheid –
   // dasselbe Papier, dieselbe Amtssprache, aber ohne Note.
   const bescheid = ende === ENDE.DISZIPLINAR
@@ -135,6 +142,18 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
             wert={durchgewunken}
             ton={durchgewunken > 0 ? 'var(--color-stamp-deny)' : undefined}
           />
+          {/* Die interessanteste Zahl des ganzen Zeugnisses – und es gibt sie
+              erst, seit man jemanden mit seinen Papieren konfrontieren kann.
+              Vorher sahen Übersehen und Durchgehenlassen von außen gleich aus.
+              Hier steht, wie oft die Sache klar auf dem Tisch lag und trotzdem
+              der grüne Stempel kam. */}
+          {g.nachsicht > 0 && (
+            <Posten
+              label="Davon wissentlich"
+              wert={g.nachsicht}
+              ton="var(--color-brass)"
+            />
+          )}
           <Posten
             label="Zu Unrecht abgewiesen"
             wert={g.zuUnrecht}
@@ -161,6 +180,23 @@ export default function Zeugnis({ stand, info, ende, onTitel }) {
               </p>
               <Posten label="Befolgt" wert={stand.anweisungen.befolgt} />
               <Posten label="Nicht befolgt" wert={stand.anweisungen.verweigert} />
+            </>
+          )}
+
+          {/* Auch die Widersprüche bleiben ohne Farbe. Viele davon sind kein
+              Fehler und keine Leistung, sondern eine Arbeitsweise – nur die
+              unberechtigten stehen für etwas, das jemandem widerfahren ist. */}
+          {widersprueche > 0 && (
+            <>
+              <p className="mb-1 mt-5 font-form text-[10px] uppercase tracking-[0.16em] text-ink-500">
+                Widersprüche am Schalter
+              </p>
+              <Posten label="Berechtigt" wert={kon.treffer} />
+              <Posten
+                label="Unberechtigt"
+                wert={kon.daneben}
+                ton={kon.daneben > 0 ? 'var(--color-stamp-deny)' : undefined}
+              />
             </>
           )}
 

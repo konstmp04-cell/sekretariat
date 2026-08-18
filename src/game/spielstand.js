@@ -49,11 +49,19 @@ export function neuerStand() {
       verstoesse: 0,
       erwischt: 0,
       zuUnrecht: 0,
+      // Wissentlich durchgewunken: Der Verstoß war durch einen Widerspruch
+      // aufgedeckt, und danach wurde trotzdem „entschuldigt" gestempelt. Das
+      // ist die einzige Zahl im Spiel, die Milde von Schlamperei trennt –
+      // ohne den Widerspruch sehen beide gleich aus.
+      nachsicht: 0,
     },
     // Anweisungsfälle stehen bewusst außerhalb von `gesamt`: Sie sind keine
     // Leistung, die sich in einer Quote ausdrücken ließe, sondern eine
     // Haltung. Im Zeugnis erscheinen sie als eigene Zeile ohne Note.
     anweisungen: { befolgt: 0, verweigert: 0 },
+    // Widersprüche am Schalter. Steht wie die Anweisungen außerhalb von
+    // `gesamt`: Es ist keine Leistung mit Quote, sondern eine Arbeitsweise.
+    konfrontationen: { treffer: 0, daneben: 0 },
     tagBilanz: { richtig: 0, falsch: 0, anweisung: null },
     index: 0,
     ende: null,
@@ -134,8 +142,44 @@ export function reduce(stand, aktion) {
     case 'ANRUFEN':
       return { ...stand, anrufe: Math.max(0, stand.anrufe - 1) }
 
+    /**
+     * Jemandem zwei Felder hinhalten.
+     *
+     * Ein Treffer kostet trotzdem etwas: Recht zu haben macht die Sache für
+     * den, der davorsteht, nicht angenehmer. Ein Fehlgriff kostet das
+     * Vierfache – das ist der ganze Grund, warum sich die Paartabelle nicht
+     * einfach am lebenden Objekt durchprobieren lässt.
+     *
+     * Ein Vergreifen in der Bedienung (zwei Felder, die miteinander nichts zu
+     * tun haben) löst diese Aktion gar nicht erst aus. Bestraft wird eine
+     * Anschuldigung, nicht ein Fehlklick.
+     */
+    case 'KONFRONTIEREN':
+      return {
+        ...stand,
+        ruf: {
+          ...stand.ruf,
+          schueler: klemm(stand.ruf.schueler + (aktion.treffer ? -1 : -4)),
+        },
+        konfrontationen: {
+          treffer: stand.konfrontationen.treffer + (aktion.treffer ? 1 : 0),
+          daneben: stand.konfrontationen.daneben + (aktion.treffer ? 0 : 1),
+        },
+      }
+
     case 'ENTSCHEIDEN': {
-      const { richtig, kind, hatteVerstoss, figurId, bestochen, anweisung } = aktion
+      const { richtig, kind, hatteVerstoss, figurId, bestochen, anweisung, aufgedeckt } = aktion
+
+      // Wissentliche Nachsicht: Der Verstoß wurde vorher durch einen
+      // Widerspruch aufgedeckt und danach trotzdem durchgewunken.
+      //
+      // Bewusst als Zuschlag auf die normale Fehlentscheidung und nicht als
+      // eigene Rechnung: Falsch bleibt falsch, das Rektorat zählt weiterhin
+      // Korrektheit. Der Zuschlag bildet nur ab, dass hier ein Unterschied
+      // besteht – wer erst nachfragt und dann durchwinkt, hat sich entschieden
+      // und nicht bloß nicht hingesehen. Die Schülerschaft weiß das, das
+      // Rektorat auch.
+      const milde = aufgedeckt && kind === 'ok' && !anweisung
 
       // Anweisungsfälle laufen an der gesamten Trefferrechnung vorbei.
       //
@@ -177,14 +221,16 @@ export function reduce(stand, aktion) {
         ...stand,
         ruf: {
           // Das Rektorat misst Korrektheit …
-          rektor: klemm(stand.ruf.rektor + (richtig ? 3 : -8)),
+          rektor: klemm(stand.ruf.rektor + (richtig ? 3 : -8) + (milde ? -4 : 0)),
           // … die Schülerschaft misst Milde. Beide gleichzeitig zu bedienen
           // ist nicht vorgesehen – darin liegt der ganze Druck.
           //
           // Angenommenes Geld schlägt zusätzlich zu Buche: Es spricht sich
           // herum. Die Fehlentscheidung selbst kostet beim Rektorat ohnehin
           // schon – Bestechung ist teuer, nicht gratis.
-          schueler: klemm(stand.ruf.schueler + (kind === 'ok' ? 3 : -4) + (bestochen ? 7 : 0)),
+          schueler: klemm(
+            stand.ruf.schueler + (kind === 'ok' ? 3 : -4) + (bestochen ? 7 : 0) + (milde ? 4 : 0),
+          ),
         },
         tagBilanz: {
           ...stand.tagBilanz,
@@ -199,6 +245,7 @@ export function reduce(stand, aktion) {
           erwischt: stand.gesamt.erwischt + (hatteVerstoss && kind === 'deny' ? 1 : 0),
           // Zu Unrecht: kein Verstoß, trotzdem abgewiesen.
           zuUnrecht: stand.gesamt.zuUnrecht + (!hatteVerstoss && kind === 'deny' ? 1 : 0),
+          nachsicht: stand.gesamt.nachsicht + (milde ? 1 : 0),
         },
         begegnungen: figurId
           ? {
@@ -255,6 +302,7 @@ export function speichern(stand) {
         ruf: stand.ruf,
         gesamt: stand.gesamt,
         anweisungen: stand.anweisungen,
+        konfrontationen: stand.konfrontationen,
         begegnungen: stand.begegnungen,
         bestechungen: stand.bestechungen,
       }),
@@ -280,12 +328,17 @@ export function laden() {
         befolgt: d.anweisungen?.befolgt ?? 0,
         verweigert: d.anweisungen?.verweigert ?? 0,
       },
+      konfrontationen: {
+        treffer: d.konfrontationen?.treffer ?? 0,
+        daneben: d.konfrontationen?.daneben ?? 0,
+      },
       gesamt: {
         richtig: d.gesamt?.richtig ?? 0,
         falsch: d.gesamt?.falsch ?? 0,
         verstoesse: d.gesamt?.verstoesse ?? 0,
         erwischt: d.gesamt?.erwischt ?? 0,
         zuUnrecht: d.gesamt?.zuUnrecht ?? 0,
+        nachsicht: d.gesamt?.nachsicht ?? 0,
       },
     }
   } catch {

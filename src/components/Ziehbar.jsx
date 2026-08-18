@@ -31,6 +31,10 @@ const REST_Y = 70
  *   Wird beim Loslassen befragt. Gibt sie eine Lage zurück, rastet das Blatt
  *   dorthin ein. Das Einrasten gehört hierher und nicht in den Aufrufer, weil
  *   nur hier die tatsächliche Lage steht.
+ * @param {(e: PointerEvent) => void} [onTipp]
+ *   Wird beim Loslassen aufgerufen, wenn dabei nicht gezogen wurde. Ein Blatt
+ *   ist verschiebbar UND seine Felder sind antippbar; ohne diese Unterscheidung
+ *   löste jedes Zurechtschieben eine Konfrontation aus.
  * @param {object} [stil]
  *   Zusätzliche Stilangaben für den Rahmen. Gedacht für `clipPath` und
  *   `filter`: Ein zerrissenes Blatt muss AM RAHMEN beschnitten werden, nicht
@@ -38,7 +42,7 @@ const REST_Y = 70
  *   unsichtbares, aber greifbares Rechteck, und man zöge das halbe Attest an
  *   einer Stelle, an der nichts zu sehen ist.
  */
-export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, children }) {
+export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, onTipp, children }) {
   const [pos, setPos] = useState(start)
   const [zieht, setZieht] = useState(false)
   const ref = useRef(null)
@@ -47,6 +51,11 @@ export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, ch
   // braucht: Der Rückruf hängt nur an `zieht`, und über den Zustand läse er
   // die Lage vom Anfang der Bewegung.
   const jetzt = useRef(start)
+  // Woher der Zeiger kam und ob er sich nennenswert bewegt hat. Vier Pixel
+  // Spielraum: Wer tippt, wackelt trotzdem ein bisschen, besonders auf einem
+  // Touchpad.
+  const herkunft = useRef({ x: 0, y: 0 })
+  const gezogen = useRef(false)
 
   const setzen = useCallback(
     (p) => {
@@ -68,6 +77,8 @@ export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, ch
       // gesetzt werden.
       const f = zoomFaktor(el)
       griff.current = { x: (e.clientX - kasten.left) / f, y: (e.clientY - kasten.top) / f }
+      herkunft.current = { x: e.clientX, y: e.clientY }
+      gezogen.current = false
       el.setPointerCapture(e.pointerId)
       setZieht(true)
       spiele('papier')
@@ -83,6 +94,10 @@ export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, ch
       const flaeche = eltern?.getBoundingClientRect()
       if (!flaeche) return
       const f = zoomFaktor(el)
+
+      if (Math.hypot(e.clientX - herkunft.current.x, e.clientY - herkunft.current.y) > 4) {
+        gezogen.current = true
+      }
 
       let x = (e.clientX - flaeche.left) / f - griff.current.x
       let y = (e.clientY - flaeche.top) / f - griff.current.y
@@ -105,8 +120,9 @@ export default function Ziehbar({ start, z = 1, onVorn, melde, schnapp, stil, ch
       setZieht(false)
       const ziel = schnapp?.(jetzt.current)
       if (ziel) setzen(ziel)
+      if (!gezogen.current) onTipp?.(e)
     },
-    [zieht, schnapp, setzen],
+    [zieht, schnapp, setzen, onTipp],
   )
 
   return (

@@ -5,6 +5,7 @@
 import Paper from './Paper.jsx'
 import Handwriting from './Handwriting.jsx'
 import Signature from './Signature.jsx'
+import Feld from './Feld.jsx'
 
 const MONAT = 'März'
 
@@ -18,9 +19,11 @@ export default function ExcuseNote({ applicant: a, stamped }) {
       </div>
 
       <div className="mb-3 flex justify-end">
-        <Handwriting seed={a.seed + 2} size={16} color="#243a5e">
-          {`${a.datumNotiz}. ${MONAT}`}
-        </Handwriting>
+        <Feld id="notiz-datum">
+          <Handwriting seed={a.seed + 2} size={16} color="#243a5e">
+            {`${a.datumNotiz}. ${MONAT}`}
+          </Handwriting>
+        </Feld>
       </div>
 
       <div className="mb-3">
@@ -33,17 +36,21 @@ export default function ExcuseNote({ applicant: a, stamped }) {
         <Handwriting seed={a.seed + 4} size={17} color="#243a5e">
           {`Mein${a.kind === 'Tochter' ? 'e' : ''} ${a.kind} `}
         </Handwriting>
-        <Handwriting seed={a.seed + 5} size={17} color="#243a5e">
-          {a.nameAufNotiz}
-        </Handwriting>
+        <Feld id="notiz-name">
+          <Handwriting seed={a.seed + 5} size={17} color="#243a5e">
+            {a.nameAufNotiz}
+          </Handwriting>
+        </Feld>
       </p>
 
       <p className="mb-1">
-        <Handwriting seed={a.seed + 6} size={17} color="#243a5e">
-          {a.fehltagVon === a.fehltagBis
-            ? `konnte am ${a.fehltagVon}. ${MONAT} nicht`
-            : `konnte vom ${a.fehltagVon}. bis ${a.fehltagBis}. ${MONAT} nicht`}
-        </Handwriting>
+        <Feld id="notiz-zeitraum">
+          <Handwriting seed={a.seed + 6} size={17} color="#243a5e">
+            {a.fehltagVon === a.fehltagBis
+              ? `konnte am ${a.fehltagVon}. ${MONAT} nicht`
+              : `konnte vom ${a.fehltagVon}. bis ${a.fehltagBis}. ${MONAT} nicht`}
+          </Handwriting>
+        </Feld>
       </p>
       <p className="mb-1">
         <Handwriting seed={a.seed + 7} size={17} color="#243a5e">
@@ -61,9 +68,11 @@ export default function ExcuseNote({ applicant: a, stamped }) {
           Unterschrift {a.elternteil}
         </span>
       </div>
-      <div className="-mt-1 border-t border-ink-500/30 pt-1" data-lupe="notiz-sig">
-        <Signature seed={a.elternSeed} forgery={a.forgery} dreist={a.dreist} width={220} height={64} />
-      </div>
+      <Feld as="div" id="notiz-sig" className="-mt-1 border-t border-ink-500/30 pt-1">
+        <div data-lupe="notiz-sig">
+          <Signature seed={a.elternSeed} forgery={a.forgery} dreist={a.dreist} width={220} height={64} />
+        </div>
+      </Feld>
 
       {/* Der eigentliche Treffer bei einer dreisten Fälschung ist nicht die
           Krakelei, sondern das, was jemand daruntergeschrieben hat, ohne

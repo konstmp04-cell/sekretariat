@@ -8,6 +8,7 @@
  */
 
 import Paper from './Paper.jsx'
+import Feld from './Feld.jsx'
 
 export default function Klausurplan({ eintraege, tag }) {
   return (
@@ -21,14 +22,18 @@ export default function Klausurplan({ eintraege, tag }) {
         </p>
       </div>
 
-      <ul className="space-y-[6px]">
+      {/* Die ganze Liste ist EIN Feld, nicht jede Zeile eine.
+          Beim Widerspruch zeigt man auf „den Aushang" und nicht auf eine
+          bestimmte Klasse darin – zeigte man auf die Zeile, wäre die halbe
+          Prüfung schon damit erledigt, dass man die richtige findet. */}
+      <Feld as="ul" id="plan" className="space-y-[6px]">
         {eintraege.map((e) => (
           <li key={e.klasse} className="flex items-baseline justify-between gap-2">
             <span className="font-form text-[15px] font-bold text-ink-900">{e.klasse}</span>
             <span className="truncate font-form text-[10px] text-ink-700">{e.fach}</span>
           </li>
         ))}
-      </ul>
+      </Feld>
 
       <p className="mt-3 border-t border-ink-500/25 pt-2 font-form text-[8px] leading-snug text-ink-500">
         Fehlzeiten an Klausurtagen nur mit ärztlichem Attest

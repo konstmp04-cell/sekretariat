@@ -31,6 +31,8 @@ import { lichtFuer, fortschrittImTag } from './game/licht.js'
 import { lichtDaempfung } from './game/wetter.js'
 import { verfuegbar, STOERUNG } from './game/stoerungen.js'
 import { ZUSTAND } from './game/zustand.js'
+import { konfrontiere, AUSGANG, AB_TAG as WIDERSPRUCH_AB } from './game/widerspruch.js'
+import Feld, { Markierung } from './components/Feld.jsx'
 import { spiele, ladeTonEinstellung, raumklangStarten, raumklangStoppen } from './game/audio.js'
 
 ladeTonEinstellung()
@@ -134,7 +136,14 @@ function Schalter({ stand, info, dispatch }) {
   const [shake, setShake] = useState(false)
   // Ist der nächste Schüler schon am Fenster? Steuert nur das Bild.
   const [angekommen, setAngekommen] = useState(false)
+  // Angetippte Felder (höchstens zwei), die Antwort darauf, und welche
+  // Regeln bei diesem Vorgang bereits aufgedeckt sind. Letzteres entscheidet
+  // später, ob ein „entschuldigt" Schlamperei oder Milde war.
+  const [markiert, setMarkiert] = useState([])
+  const [erwiderung, setErwiderung] = useState(null)
+  const [aufgedeckt, setAufgedeckt] = useState(() => new Set())
   const timer = useRef(null)
+  const antwortUhr = useRef(null)
 
   // Stapelreihenfolge der Dokumente. Das zuletzt angefasste liegt oben –
   // ohne das fühlt sich Übereinanderschieben sofort falsch an.
@@ -274,12 +283,18 @@ function Schalter({ stand, info, dispatch }) {
   // nicht an den Beginn des Anmarsches.
   useEffect(() => {
     setAngekommen(false)
+    setMarkiert([])
+    setErwiderung(null)
+    setAufgedeckt(new Set())
+    clearTimeout(antwortUhr.current)
     const t = setTimeout(() => {
       setAngekommen(true)
       spiele('papier')
     }, ANMARSCH_MS)
     return () => clearTimeout(t)
   }, [stand.index])
+
+  useEffect(() => () => clearTimeout(antwortUhr.current), [])
 
   // Der Grundton des Zimmers läuft, solange die Schicht läuft – und endet
   // mit ihr. Auf der Abrechnung und im Briefing wäre er fehl am Platz: Dort
@@ -304,6 +319,72 @@ function Schalter({ stand, info, dispatch }) {
     spiele('glocke')
     spiele('flur', 1.1)
   }, [stand.index, pausen])
+
+  /**
+   * Widerspruch: zwei Felder antippen und hinhalten.
+   *
+   * Ab Tag 2, damit der erste Tag beim Stempeln bleibt. Nach dem Stempel
+   * nicht mehr – der Vorgang ist dann entschieden, und eine Rückfrage danach
+   * wäre eine Rückfrage an eine Akte.
+   */
+  const widerspruchAktiv = angekommen && !stamp && info.tag >= WIDERSPRUCH_AB
+
+  const feldWaehlen = useCallback(
+    (feld) => {
+      // Zweimal dasselbe Feld hebt die Markierung wieder auf: Wer sich
+      // vertippt hat, soll es zurücknehmen können, ohne irgendwen zu
+      // beschuldigen.
+      if (markiert.includes(feld)) {
+        setMarkiert(markiert.filter((f) => f !== feld))
+        return
+      }
+      if (markiert.length === 0) {
+        setMarkiert([feld])
+        spiele('klick')
+        return
+      }
+
+      const ergebnis = konfrontiere(a, info.tag, markiert[0], feld)
+      setMarkiert([markiert[0], feld])
+      spiele('papier')
+
+      // Ein kurzer Moment zwischen Hinhalten und Antwort. Kein Selbstzweck:
+      // Ohne ihn erschiene die Erwiderung im selben Bild wie die zweite
+      // Markierung, und man sähe nie, WAS man da hochgehalten hat.
+      antwortUhr.current = setTimeout(() => {
+        setErwiderung(ergebnis)
+        setMarkiert([])
+        if (ergebnis.ausgang !== AUSGANG.KEIN_PAAR) {
+          dispatch({ typ: 'KONFRONTIEREN', treffer: ergebnis.ausgang === AUSGANG.ERTAPPT })
+        }
+        if (ergebnis.ausgang === AUSGANG.ERTAPPT) {
+          setAufgedeckt((alt) => new Set(alt).add(ergebnis.regel))
+          spiele('haken')
+        }
+      }, 420)
+    },
+    [a, markiert, info.tag, dispatch],
+  )
+
+  /**
+   * Tippen statt ziehen.
+   *
+   * Über `elementsFromPoint` und nicht über das Ereignisziel: Ziehbar fängt
+   * den Zeiger mit `setPointerCapture` ein, seitdem ist `e.target` immer der
+   * Blattrahmen und nie das Feld darunter. Dieselbe Technik benutzt auch die
+   * Lupe, um zu wissen, worüber sie gerade schwebt.
+   */
+  const antippen = useCallback(
+    (e) => {
+      if (!widerspruchAktiv) return
+      const treffer = document
+        .elementsFromPoint(e.clientX, e.clientY)
+        .map((el) => el.closest?.('[data-feld]'))
+        .find(Boolean)
+      if (treffer) feldWaehlen(treffer.dataset.feld)
+    },
+    [widerspruchAktiv, feldWaehlen],
+  )
 
   const entscheiden = useCallback(
     (kind, bestochen = false) => {
@@ -337,6 +418,10 @@ function Schalter({ stand, info, dispatch }) {
         figurId: a.figur?.id ?? null,
         bestochen,
         anweisung,
+        // War bei diesem Vorgang vorher ein Verstoß durch einen Widerspruch
+        // aufgedeckt? Nur dann ist ein „entschuldigt" eine Entscheidung und
+        // kein Übersehen.
+        aufgedeckt: aufgedeckt.size > 0,
       })
 
       timer.current = setTimeout(() => {
@@ -345,7 +430,7 @@ function Schalter({ stand, info, dispatch }) {
         dispatch({ typ: 'NAECHSTER' })
       }, 1900)
     },
-    [a, stamp, angekommen, info.tag, dispatch],
+    [a, stamp, angekommen, aufgedeckt, info.tag, dispatch],
   )
 
   useEffect(() => {
@@ -358,305 +443,359 @@ function Schalter({ stand, info, dispatch }) {
   }, [entscheiden])
 
   return (
-    <div className={`relative h-full w-full overflow-hidden ${shake ? 'animate-desk-shake' : ''}`}>
-      {/* --- Rückmeldung am Bildschirmrand -------------------------------- */}
-      {/* Liegt über allem, nimmt aber keine Klicks an: Sie ist eine Auskunft,
-          kein Bedienelement. Anordnungen bekommen keinen Schein – dort hat
-          das Spiel kein Urteil abzugeben, und eine Farbe wäre schon eines. */}
-      {feedback && !feedback.anweisung && (
-        <div
-          key={a.id + stamp}
-          className="animate-rand-schein pointer-events-none absolute inset-0 z-50"
-          style={{
-            // Grün etwas kräftiger als Rot angesetzt: Bei gleicher Deckung
-            // wirkt das dunkle Tannengrün gegen den fast schwarzen
-            // Schreibtisch deutlich blasser als das warme Rot.
-            boxShadow: `inset 0 0 150px 18px ${
-              feedback.richtig ? 'rgb(58 132 100 / 0.72)' : 'rgb(168 50 38 / 0.68)'
-            }`,
-          }}
-        />
-      )}
-
-      {/* --- Rückwand mit Schalterfenster ---------------------------------- */}
-      <div className="absolute inset-x-0 top-0 h-[32%] bg-desk-700">
-        <div
-          className="absolute inset-0 opacity-70"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(180deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 44px)',
-          }}
-        />
-        {/* Ein Hauch der Tagesfarbe über die ganze Wand – ohne ihn leuchtet
-            der Pool unten in einer Wand, die davon nichts mitbekommt. */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: licht.wandton, transition: 'background 1600ms linear' }}
-        />
-        <Flur
-          wartende={queue.slice(stand.index + 1, stand.index + 5)}
-          person={a.face}
-          index={stand.index}
-          angekommen={angekommen}
-        />
-
-        <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-5">
-          {/* Porträt, Wortmeldung und Unterlagen erscheinen gemeinsam, wenn
-              die Figur am Schalter steht. */}
+    // Der ganze Schalter liegt im Markierungs-Kontext, nicht nur der
+    // Schreibtisch: Die Person am Fenster ist selbst ein antippbares Feld –
+    // beim Lichtbildabgleich hält man das Aktenfoto gegen den Menschen, der
+    // davorsteht, und der steht oben.
+    <Markierung markiert={new Set(markiert)} aktiv={widerspruchAktiv}>
+      <div className={`relative h-full w-full overflow-hidden ${shake ? 'animate-desk-shake' : ''}`}>
+        {/* --- Rückmeldung am Bildschirmrand -------------------------------- */}
+        {/* Liegt über allem, nimmt aber keine Klicks an: Sie ist eine Auskunft,
+            kein Bedienelement. Anordnungen bekommen keinen Schein – dort hat
+            das Spiel kein Urteil abzugeben, und eine Farbe wäre schon eines. */}
+        {feedback && !feedback.anweisung && (
           <div
-            key={a.id}
-            className={`border-4 border-desk-600 bg-desk-900 shadow-[0_0_40px_rgb(0_0_0/0.7)] transition-opacity duration-200 ${
-              angekommen ? 'animate-paper-in opacity-100' : 'opacity-0'
-            }`}
-          >
-            <PixelPortrait face={a.face} scale={3} />
-          </div>
-          <div
-            className="mb-6 max-w-[320px] rounded-sm border border-paper-400/25 bg-desk-900/85 px-4 py-3 transition-opacity duration-200"
-            style={{ opacity: angekommen ? 1 : 0 }}
-          >
-            {vorgeschichte.length > 0 && (
-              <p className="mb-1 font-form text-[9px] uppercase tracking-[0.16em] text-brass/80">
-                Schon {vorgeschichte.length === 1 ? 'einmal' : vorgeschichte.length + '-mal'} hier gewesen
-              </p>
-            )}
-            <p className="font-form text-[13px] leading-snug text-paper-200">„{gesagt}"</p>
-            {a.auftritt?.bestechung && !stamp && (
-              <p className="mt-2 border-t border-brass/25 pt-2 font-form text-[11px] italic leading-snug text-brass">
-                {a.auftritt.bestechung.text}
-              </p>
-            )}
-            <p className="mt-1 font-form text-[10px] uppercase tracking-widest text-paper-400/70">
-              {a.klasse} · {a.name}
-            </p>
-          </div>
-        </div>
-
-        {/* Lichtpool um die Person am Schalter.
-
-            Zuvor lag hier ein Kegel über 46 % der Bildschirmbreite, ohne
-            sichtbare Quelle und über die Wand hinauslaufend. Licht ohne
-            erkennbaren Ursprung liest sich nicht als Beleuchtung, sondern als
-            Schleier quer über die Wand. Eng gefasst und am Schalterfenster
-            verankert lenkt es dagegen den Blick auf den Menschen davor. */}
-        <div
-          className="pointer-events-none absolute bottom-0 left-1/2 w-[430px] -translate-x-1/2"
-          style={{
-            height: licht.hoehe,
-            background: licht.schein,
-            // Lang und linear: Der Wechsel soll zwischen zwei Vorgängen
-            // unbemerkt geschehen. Wer ihn beim Zusehen bemerkt, bemerkt eine
-            // Animation – und nicht, dass es Nachmittag geworden ist.
-            transition: 'background 1600ms linear, height 1600ms linear',
-          }}
-        />
-      </div>
-
-      {/* --- Schreibtisch -------------------------------------------------- */}
-      <div className="desk-surface absolute inset-x-0 bottom-0 top-[32%] border-t-4 border-desk-600">
-        <Schreibtischdeko tag={info.tag} />
-
-        <Telefon
-          applicant={a}
-          uebrig={stand.anrufe}
-          gestoert={!verfuegbar(STOERUNG.TELEFON, info.tag)}
-          wartet={!angekommen}
-          onAnruf={() => dispatch({ typ: 'ANRUFEN' })}
-        />
-
-        {/* Freie Ablagefläche: Die Dokumente liegen übereinander und lassen
-            sich mit der Maus auseinanderschieben. */}
-        <div className="relative h-full w-full">
-          {/* Die Unterlagen des Vorgangs.
-
-              Sie liegen erst da, wenn ihr Besitzer am Schalter steht. Vorher
-              hätte sie niemand abgegeben – und ein Tresen voller Papiere,
-              während der Mensch dazu noch durch den Flur läuft, macht aus dem
-              Anmarsch eine Zierleiste statt eines Vorgangs.
-
-              Der Aushang und die Lupe stehen bewusst AUSSERHALB dieser
-              Bedingung: Beide gehören dem Tag, nicht dem Vorgang. Der Aushang
-              ist zugleich das einzige, was man während des Anmarsches lesen
-              kann, und genau dafür ist er dort richtig. */}
-          {angekommen && (
-            <>
-              <Ziehbar
-                key={`n-${a.id}`}
-                start={startNotiz}
-                z={zVon('notiz')}
-                onVorn={() => nachVorn('notiz')}
-              >
-                <ExcuseNote
-                  applicant={a}
-                  stamped={stamp ? <Stamp kind={stamp} rotate={-11} size={168} /> : null}
-                />
-              </Ziehbar>
-
-              {/* Ein zerrissenes Attest kommt in zwei Stücken über den Tresen und
-                  wird zu einem, sobald man sie zusammenschiebt. Die beiden Hälften
-                  liegen mit Abstand da: nebeneinandergelegt sähe es aus wie ein
-                  Blatt mit einem Sprung, und niemand käme auf die Idee, etwas zu
-                  tun. Getrennt ist die Aufforderung selbstverständlich. */}
-              {a.attest &&
-                (a.zustand === ZUSTAND.ZERRISSEN ? (
-                  <Zerrissen
-                    key={`z-${a.id}`}
-                    seed={a.seed}
-                    // Höher als das heile Attest und weiter auseinander. Das heile
-                    // liegt mit Absicht halb unter der Entschuldigung – man soll
-                    // es hervorziehen. Zwei Stücke, von denen eines unter einem
-                    // anderen Blatt steckt, sind aber keine Aufgabe mehr, sondern
-                    // eine Suche, und über dem Stempelrand abgeschnitten erst recht.
-                    startA={{ x: Math.max(120, startAttest.x - 118), y: 126 }}
-                    startB={{ x: startAttest.x + 150, y: 178 }}
-                    z={zVon('attest')}
-                    onVorn={() => nachVorn('attest')}
-                    blatt={(lage) => <Attest applicant={a} {...lage} />}
-                  />
-                ) : (
-                  <Ziehbar
-                    key={`a-${a.id}`}
-                    start={startAttest}
-                    z={zVon('attest')}
-                    onVorn={() => nachVorn('attest')}
-                  >
-                    <Attest applicant={a} />
-                  </Ziehbar>
-                ))}
-
-              <Ziehbar
-                key={`f-${a.id}`}
-                start={startAkte}
-                z={zVon('akte')}
-                onVorn={() => nachVorn('akte')}
-              >
-                <StudentFile applicant={a} />
-              </Ziehbar>
-
-              {/* Das Bestechungsgeld. Verschwindet mit der Entscheidung – ob
-                  angenommen oder nicht, danach liegt es nicht mehr da. */}
-              {a.auftritt?.bestechung && !stamp && (
-                <Ziehbar
-                  key={`g-${a.id}`}
-                  start={startSchein}
-                  z={zVon('schein')}
-                  onVorn={() => nachVorn('schein')}
-                >
-                  <Geldschein betrag={a.auftritt.bestechung.betrag} />
-                </Ziehbar>
-              )}
-            </>
-          )}
-
-          {/* Der Aushang gehört keinem Schüler: Er hängt am Tag, nicht am
-              Vorgang, und behält deshalb über die ganze Schicht seine Lage. */}
-          {klausuren.length > 0 && (
-            <Ziehbar
-              key={`k-${info.tag}`}
-              start={startPlan}
-              z={zVon('plan')}
-              onVorn={() => nachVorn('plan')}
-            >
-              <Klausurplan eintraege={klausuren} tag={info.tag} />
-            </Ziehbar>
-          )}
-
-          {/* An einem Tag ist sie verliehen. Sie fehlt dann schlicht – kein
-              ausgegrauter Platzhalter, denn ein Gegenstand, der nicht da ist,
-              liegt eben nicht herum. Angekündigt wurde es am Morgen. */}
-          {verfuegbar(STOERUNG.LUPE, info.tag) && (
-            <Lupe start={startLupe} inhalte={lupeInhalte} />
-          )}
-
-          {/* Einmaliger Hinweis beim allerersten Vorgang. Danach nie wieder –
-              wer es einmal gemacht hat, braucht die Erinnerung nicht. */}
-          {/* Mit eigener Unterlage, nicht als nackter Text auf dem Tisch: Die
-              Papiere liegen frei und lassen sich verschieben, also kann unter
-              dieser Zeile alles Mögliche landen – auf einem breiten
-              Bildschirm schon von Haus aus die Entschuldigung. Ein Hinweis,
-              der im Papier steht, liest sich wie ein Druckfehler. */}
-          {info.tag === 1 && stand.index === 0 && angekommen && !stamp && (
-            <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-paper-400/15 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-paper-400/65">
-              Dokumente und Lupe lassen sich verschieben
-            </p>
-          )}
-        </div>
-
-        <Dienstanweisung tag={info.tag} />
-
-        {/* Statusleiste */}
-        <div className="absolute left-6 top-6 z-20 flex flex-col gap-3 rounded-sm border border-brass/30 bg-desk-900/90 p-4 shadow-xl">
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-form text-[10px] uppercase tracking-widest text-brass">
-              {info.wochentag} · {info.datum}
-            </span>
-            <TonKnopf />
-          </div>
-          <RufBalken label="Rektor" wert={stand.ruf.rektor} farbe="var(--color-brass)" />
-          <RufBalken label="Schüler" wert={stand.ruf.schueler} farbe="var(--color-stamp-ok)" />
-          <div className="mt-1 flex items-center justify-between border-t border-brass/20 pt-2 font-form text-[10px] uppercase tracking-widest">
-            <span className="text-paper-400">
-              Vorgang {stand.index + 1}/{info.anzahl}
-            </span>
-            <span className="flex gap-3">
-              <span className="text-stamp-ok">✓ {stand.tagBilanz.richtig}</span>
-              <span className="text-stamp-deny">✗ {stand.tagBilanz.falsch}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* --- Werkzeug und Rückmeldung ------------------------------------- */}
-      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2">
-        {feedback && (
-          <div
-            className={`animate-ink-settle rounded-sm border px-4 py-2 text-center font-form text-[11px] ${
-              // Anweisungsfälle bekommen bewusst weder Grün noch Rot, sondern
-              // das Messing der Amtsfarbe: Das Spiel stellt fest, was
-              // geschehen ist, und beurteilt es nicht.
-              feedback.anweisung
-                ? 'border-brass/60 bg-desk-900/90 text-brass'
-                : feedback.richtig
-                  ? 'border-stamp-ok/60 bg-desk-900/90 text-stamp-ok'
-                  : 'border-stamp-deny/60 bg-desk-900/90 text-stamp-deny'
-            }`}
-          >
-            {feedback.anweisung
-              ? feedback.befolgt
-                ? 'Anordnung befolgt'
-                : 'Anordnung missachtet'
-              : feedback.richtig
-                ? 'Korrekt bearbeitet'
-                : 'Verweis vom Rektorat'}
-            {feedback.anweisung ? (
-              <div className="mt-1 text-[10px] text-paper-400">
-                {feedback.befolgt
-                  ? 'Die Papiere waren in Ordnung.'
-                  : `Entgegen der Anordnung · ${feedback.anweisung.kurz}`}
-              </div>
-            ) : (
-              feedback.verstoesse.length > 0 && (
-                <div className="mt-1 text-[10px] text-paper-400">
-                  {feedback.verstoesse.map((v) => v.titel).join(' · ')}
-                </div>
-              )
-            )}
-          </div>
+            key={a.id + stamp}
+            className="animate-rand-schein pointer-events-none absolute inset-0 z-50"
+            style={{
+              // Grün etwas kräftiger als Rot angesetzt: Bei gleicher Deckung
+              // wirkt das dunkle Tannengrün gegen den fast schwarzen
+              // Schreibtisch deutlich blasser als das warme Rot.
+              boxShadow: `inset 0 0 150px 18px ${
+                feedback.richtig ? 'rgb(58 132 100 / 0.72)' : 'rgb(168 50 38 / 0.68)'
+              }`,
+            }}
+          />
         )}
 
-        <div className="flex items-end gap-8">
-          {a.auftritt?.bestechung && !stamp && (
-            <button
-              onClick={() => entscheiden('ok', true)}
-              className="mb-8 rounded-sm border-2 border-brass/70 bg-desk-800 px-6 py-3 font-form text-[12px] font-bold uppercase tracking-[0.14em] text-brass shadow-lg transition hover:bg-brass hover:text-desk-900"
+        {/* --- Rückwand mit Schalterfenster ---------------------------------- */}
+        <div className="absolute inset-x-0 top-0 h-[32%] bg-desk-700">
+          <div
+            className="absolute inset-0 opacity-70"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(180deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 44px)',
+            }}
+          />
+          {/* Ein Hauch der Tagesfarbe über die ganze Wand – ohne ihn leuchtet
+              der Pool unten in einer Wand, die davon nichts mitbekommt. */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: licht.wandton, transition: 'background 1600ms linear' }}
+          />
+          <Flur
+            wartende={queue.slice(stand.index + 1, stand.index + 5)}
+            person={a.face}
+            index={stand.index}
+            angekommen={angekommen}
+          />
+
+          <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-5">
+            {/* Porträt, Wortmeldung und Unterlagen erscheinen gemeinsam, wenn
+                die Figur am Schalter steht. */}
+            <Feld
+              as="div"
+              id="person"
+              key={a.id}
+              className={`border-4 border-desk-600 bg-desk-900 shadow-[0_0_40px_rgb(0_0_0/0.7)] transition-opacity duration-200 ${
+                angekommen ? 'animate-paper-in opacity-100' : 'opacity-0'
+              }`}
             >
-              Geld nehmen · {a.auftritt.bestechung.betrag} €
-            </button>
+              {/* Nicht ziehbar, also auch kein Tipp-gegen-Zug: ein schlichter
+                  Klick genügt. */}
+              <div onClick={antippen}>
+                <PixelPortrait face={a.face} scale={3} />
+              </div>
+            </Feld>
+            <div
+              className="mb-6 max-w-[320px] rounded-sm border border-paper-400/25 bg-desk-900/85 px-4 py-3 transition-opacity duration-200"
+              style={{ opacity: angekommen ? 1 : 0 }}
+            >
+              {vorgeschichte.length > 0 && (
+                <p className="mb-1 font-form text-[9px] uppercase tracking-[0.16em] text-brass/80">
+                  Schon {vorgeschichte.length === 1 ? 'einmal' : vorgeschichte.length + '-mal'} hier gewesen
+                </p>
+              )}
+              <p className="font-form text-[13px] leading-snug text-paper-200">„{gesagt}"</p>
+
+              {/* Die Erwiderung auf einen Widerspruch.
+                  Abgesetzt und mit Messingkante, damit sie nicht als zweiter
+                  Satz derselben Begrüßung gelesen wird: Das hier ist eine
+                  Antwort auf etwas, das man selbst getan hat. Ein Ertappen
+                  bekommt zusätzlich die Farbe des Abweisungsstempels – nicht
+                  als Urteil, sondern als Merkzeichen: Ab hier weiß man
+                  Bescheid, und was danach kommt, ist eine Entscheidung. */}
+              {erwiderung && (
+                <div
+                  className="animate-ink-settle mt-2 border-l-2 pl-2"
+                  style={{
+                    borderColor:
+                      erwiderung.ausgang === AUSGANG.ERTAPPT
+                        ? 'var(--color-stamp-deny)'
+                        : 'var(--color-brass)',
+                  }}
+                >
+                  <p className="font-form text-[9px] uppercase tracking-[0.16em] text-paper-400/60">
+                    {erwiderung.ausgang === AUSGANG.ERTAPPT
+                      ? 'Vorgehalten'
+                      : erwiderung.ausgang === AUSGANG.DANEBEN
+                        ? 'Vorgehalten · kein Widerspruch'
+                        : 'Vorgehalten · unpassend'}
+                  </p>
+                  <p className="mt-[2px] font-form text-[12px] leading-snug text-paper-200">
+                    „{erwiderung.text}"
+                  </p>
+                </div>
+              )}
+              {a.auftritt?.bestechung && !stamp && (
+                <p className="mt-2 border-t border-brass/25 pt-2 font-form text-[11px] italic leading-snug text-brass">
+                  {a.auftritt.bestechung.text}
+                </p>
+              )}
+              <p className="mt-1 font-form text-[10px] uppercase tracking-widest text-paper-400/70">
+                {a.klasse} · {a.name}
+              </p>
+            </div>
+          </div>
+
+          {/* Lichtpool um die Person am Schalter.
+
+              Zuvor lag hier ein Kegel über 46 % der Bildschirmbreite, ohne
+              sichtbare Quelle und über die Wand hinauslaufend. Licht ohne
+              erkennbaren Ursprung liest sich nicht als Beleuchtung, sondern als
+              Schleier quer über die Wand. Eng gefasst und am Schalterfenster
+              verankert lenkt es dagegen den Blick auf den Menschen davor. */}
+          <div
+            className="pointer-events-none absolute bottom-0 left-1/2 w-[430px] -translate-x-1/2"
+            style={{
+              height: licht.hoehe,
+              background: licht.schein,
+              // Lang und linear: Der Wechsel soll zwischen zwei Vorgängen
+              // unbemerkt geschehen. Wer ihn beim Zusehen bemerkt, bemerkt eine
+              // Animation – und nicht, dass es Nachmittag geworden ist.
+              transition: 'background 1600ms linear, height 1600ms linear',
+            }}
+          />
+        </div>
+
+        {/* --- Schreibtisch -------------------------------------------------- */}
+        <div className="desk-surface absolute inset-x-0 bottom-0 top-[32%] border-t-4 border-desk-600">
+          <Schreibtischdeko tag={info.tag} />
+
+          <Telefon
+            applicant={a}
+            uebrig={stand.anrufe}
+            gestoert={!verfuegbar(STOERUNG.TELEFON, info.tag)}
+            wartet={!angekommen}
+            onAnruf={() => dispatch({ typ: 'ANRUFEN' })}
+          />
+
+          {/* Freie Ablagefläche: Die Dokumente liegen übereinander und lassen
+              sich mit der Maus auseinanderschieben. */}
+          <div className="relative h-full w-full">
+            {/* Die Unterlagen des Vorgangs.
+
+                Sie liegen erst da, wenn ihr Besitzer am Schalter steht. Vorher
+                hätte sie niemand abgegeben – und ein Tresen voller Papiere,
+                während der Mensch dazu noch durch den Flur läuft, macht aus dem
+                Anmarsch eine Zierleiste statt eines Vorgangs.
+
+                Der Aushang und die Lupe stehen bewusst AUSSERHALB dieser
+                Bedingung: Beide gehören dem Tag, nicht dem Vorgang. Der Aushang
+                ist zugleich das einzige, was man während des Anmarsches lesen
+                kann, und genau dafür ist er dort richtig. */}
+            {angekommen && (
+              <>
+                <Ziehbar
+                  key={`n-${a.id}`}
+                  start={startNotiz}
+                  z={zVon('notiz')}
+                  onVorn={() => nachVorn('notiz')}
+                  onTipp={antippen}
+                >
+                  <ExcuseNote
+                    applicant={a}
+                    stamped={stamp ? <Stamp kind={stamp} rotate={-11} size={168} /> : null}
+                  />
+                </Ziehbar>
+
+                {/* Ein zerrissenes Attest kommt in zwei Stücken über den Tresen und
+                    wird zu einem, sobald man sie zusammenschiebt. Die beiden Hälften
+                    liegen mit Abstand da: nebeneinandergelegt sähe es aus wie ein
+                    Blatt mit einem Sprung, und niemand käme auf die Idee, etwas zu
+                    tun. Getrennt ist die Aufforderung selbstverständlich. */}
+                {a.attest &&
+                  (a.zustand === ZUSTAND.ZERRISSEN ? (
+                    <Zerrissen
+                      key={`z-${a.id}`}
+                      seed={a.seed}
+                      // Höher als das heile Attest und weiter auseinander. Das heile
+                      // liegt mit Absicht halb unter der Entschuldigung – man soll
+                      // es hervorziehen. Zwei Stücke, von denen eines unter einem
+                      // anderen Blatt steckt, sind aber keine Aufgabe mehr, sondern
+                      // eine Suche, und über dem Stempelrand abgeschnitten erst recht.
+                      startA={{ x: Math.max(120, startAttest.x - 118), y: 126 }}
+                      startB={{ x: startAttest.x + 150, y: 178 }}
+                      z={zVon('attest')}
+                      onVorn={() => nachVorn('attest')}
+                      onTipp={antippen}
+                      blatt={(lage) => <Attest applicant={a} {...lage} />}
+                    />
+                  ) : (
+                    <Ziehbar
+                      key={`a-${a.id}`}
+                      start={startAttest}
+                      z={zVon('attest')}
+                      onVorn={() => nachVorn('attest')}
+                      onTipp={antippen}
+                    >
+                      <Attest applicant={a} />
+                    </Ziehbar>
+                  ))}
+
+                <Ziehbar
+                  key={`f-${a.id}`}
+                  start={startAkte}
+                  z={zVon('akte')}
+                  onVorn={() => nachVorn('akte')}
+                  onTipp={antippen}
+                >
+                  <StudentFile applicant={a} />
+                </Ziehbar>
+
+                {/* Das Bestechungsgeld. Verschwindet mit der Entscheidung – ob
+                    angenommen oder nicht, danach liegt es nicht mehr da. */}
+                {a.auftritt?.bestechung && !stamp && (
+                  <Ziehbar
+                    key={`g-${a.id}`}
+                    start={startSchein}
+                    z={zVon('schein')}
+                    onVorn={() => nachVorn('schein')}
+                    onTipp={antippen}
+                  >
+                    <Geldschein betrag={a.auftritt.bestechung.betrag} />
+                  </Ziehbar>
+                )}
+              </>
+            )}
+
+            {/* Der Aushang gehört keinem Schüler: Er hängt am Tag, nicht am
+                Vorgang, und behält deshalb über die ganze Schicht seine Lage. */}
+            {klausuren.length > 0 && (
+              <Ziehbar
+                key={`k-${info.tag}`}
+                start={startPlan}
+                z={zVon('plan')}
+                onVorn={() => nachVorn('plan')}
+                onTipp={antippen}
+              >
+                <Klausurplan eintraege={klausuren} tag={info.tag} />
+              </Ziehbar>
+            )}
+
+            {/* An einem Tag ist sie verliehen. Sie fehlt dann schlicht – kein
+                ausgegrauter Platzhalter, denn ein Gegenstand, der nicht da ist,
+                liegt eben nicht herum. Angekündigt wurde es am Morgen. */}
+            {verfuegbar(STOERUNG.LUPE, info.tag) && (
+              <Lupe start={startLupe} inhalte={lupeInhalte} />
+            )}
+
+            {/* Einmaliger Hinweis beim allerersten Vorgang. Danach nie wieder –
+                wer es einmal gemacht hat, braucht die Erinnerung nicht. */}
+            {/* Mit eigener Unterlage, nicht als nackter Text auf dem Tisch: Die
+                Papiere liegen frei und lassen sich verschieben, also kann unter
+                dieser Zeile alles Mögliche landen – auf einem breiten
+                Bildschirm schon von Haus aus die Entschuldigung. Ein Hinweis,
+                der im Papier steht, liest sich wie ein Druckfehler. */}
+            {info.tag === WIDERSPRUCH_AB && stand.index === 0 && angekommen && !stamp && !erwiderung && (
+              <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-brass/25 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-brass/75">
+                Zwei Angaben antippen, um sie vorzuhalten
+              </p>
+            )}
+
+            {info.tag === 1 && stand.index === 0 && angekommen && !stamp && (
+              <p className="pointer-events-none absolute bottom-44 left-1/2 z-10 -translate-x-1/2 rounded-sm border border-paper-400/15 bg-desk-900/85 px-3 py-[5px] text-center font-form text-[11px] uppercase tracking-[0.18em] text-paper-400/65">
+                Dokumente und Lupe lassen sich verschieben
+              </p>
+            )}
+          </div>
+
+          <Dienstanweisung tag={info.tag} />
+
+          {/* Statusleiste */}
+          <div className="absolute left-6 top-6 z-20 flex flex-col gap-3 rounded-sm border border-brass/30 bg-desk-900/90 p-4 shadow-xl">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-form text-[10px] uppercase tracking-widest text-brass">
+                {info.wochentag} · {info.datum}
+              </span>
+              <TonKnopf />
+            </div>
+            <RufBalken label="Rektor" wert={stand.ruf.rektor} farbe="var(--color-brass)" />
+            <RufBalken label="Schüler" wert={stand.ruf.schueler} farbe="var(--color-stamp-ok)" />
+            <div className="mt-1 flex items-center justify-between border-t border-brass/20 pt-2 font-form text-[10px] uppercase tracking-widest">
+              <span className="text-paper-400">
+                Vorgang {stand.index + 1}/{info.anzahl}
+              </span>
+              <span className="flex gap-3">
+                <span className="text-stamp-ok">✓ {stand.tagBilanz.richtig}</span>
+                <span className="text-stamp-deny">✗ {stand.tagBilanz.falsch}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Werkzeug und Rückmeldung ------------------------------------- */}
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2">
+          {feedback && (
+            <div
+              className={`animate-ink-settle rounded-sm border px-4 py-2 text-center font-form text-[11px] ${
+                // Anweisungsfälle bekommen bewusst weder Grün noch Rot, sondern
+                // das Messing der Amtsfarbe: Das Spiel stellt fest, was
+                // geschehen ist, und beurteilt es nicht.
+                feedback.anweisung
+                  ? 'border-brass/60 bg-desk-900/90 text-brass'
+                  : feedback.richtig
+                    ? 'border-stamp-ok/60 bg-desk-900/90 text-stamp-ok'
+                    : 'border-stamp-deny/60 bg-desk-900/90 text-stamp-deny'
+              }`}
+            >
+              {feedback.anweisung
+                ? feedback.befolgt
+                  ? 'Anordnung befolgt'
+                  : 'Anordnung missachtet'
+                : feedback.richtig
+                  ? 'Korrekt bearbeitet'
+                  : 'Verweis vom Rektorat'}
+              {feedback.anweisung ? (
+                <div className="mt-1 text-[10px] text-paper-400">
+                  {feedback.befolgt
+                    ? 'Die Papiere waren in Ordnung.'
+                    : `Entgegen der Anordnung · ${feedback.anweisung.kurz}`}
+                </div>
+              ) : (
+                feedback.verstoesse.length > 0 && (
+                  <div className="mt-1 text-[10px] text-paper-400">
+                    {feedback.verstoesse.map((v) => v.titel).join(' · ')}
+                  </div>
+                )
+              )}
+            </div>
           )}
 
-          <Stempelwerkzeug onEntscheiden={entscheiden} gesperrt={!!stamp || !angekommen} />
+          <div className="flex items-end gap-8">
+            {a.auftritt?.bestechung && !stamp && (
+              <button
+                onClick={() => entscheiden('ok', true)}
+                className="mb-8 rounded-sm border-2 border-brass/70 bg-desk-800 px-6 py-3 font-form text-[12px] font-bold uppercase tracking-[0.14em] text-brass shadow-lg transition hover:bg-brass hover:text-desk-900"
+              >
+                Geld nehmen · {a.auftritt.bestechung.betrag} €
+              </button>
+            )}
+
+            <Stempelwerkzeug onEntscheiden={entscheiden} gesperrt={!!stamp || !angekommen} />
+          </div>
         </div>
       </div>
-    </div>
+    </Markierung>
   )
 }

@@ -30,24 +30,33 @@ export const FIGUREN = [
       2: {
         verstoss: VERSTOSS.FAELSCHUNG,
         text: 'Morgen. Hier, von meiner Mutter.',
+        vorgehalten: 'Die schreibt schnell, wenn sie es eilig hat. Das ist ihre, ganz sicher.',
       },
       5: {
         verstoss: VERSTOSS.FAELSCHUNG,
         text: 'Ich bin es nochmal. Diesmal ist alles richtig.',
         wennDurchgelassen: 'Sie waren letztes Mal in Ordnung zu mir. Danke dafür.',
         wennAbgewiesen: 'Letztes Mal haben Sie mich abgewiesen. Heute passt es aber.',
+        vorgehalten: 'Ich hab Ihnen doch gesagt, dass diesmal alles richtig ist. Gucken Sie noch mal.',
       },
       8: {
         verstoss: VERSTOSS.FAELSCHUNG,
         text: 'Bitte. Nur dieses eine Mal noch.',
         wennDurchgelassen: 'Sie haben mich schon zweimal durchgelassen. Ich frag nicht gern nochmal.',
         wennAbgewiesen: 'Ich weiß, was Sie sagen werden. Schauen Sie trotzdem hin.',
+        // Beim dritten Mal hört er auf zu lügen. Nicht weil er ertappt ist –
+        // ertappt war er vorher auch –, sondern weil es sich nicht mehr lohnt.
+        vorgehalten: '… Ja. Die ist von mir. Das wissen Sie doch längst.',
       },
       11: {
         verstoss: VERSTOSS.FAELSCHUNG,
         text: 'Meine Mutter arbeitet nachts. Wenn sie schläft, wecke ich sie nicht für einen Zettel.',
         wennDurchgelassen: 'Sie wissen längst, dass die nicht von ihr sind. Sie haben trotzdem gestempelt.',
         wennAbgewiesen: 'Meine Mutter arbeitet nachts. Sie kriegt gar nicht mit, dass ich fehle.',
+        // Beim vierten Mal gibt er es nicht mehr zu, er stellt die Frage
+        // zurück. Das ist der Punkt, an dem der Vorhalt aufhört, ihm etwas
+        // nachzuweisen, und anfängt, etwas über den zu sagen, der ihn macht.
+        vorgehalten: 'Ja, ich schreibe sie. Soll ich sie um sechs wecken, damit Sie einen Haken machen können?',
       },
       // Der letzte Vorgang des Spiels.
       //
@@ -84,6 +93,9 @@ export const FIGUREN = [
       6: {
         verstoss: VERSTOSS.DATUM,
         text: 'Das Datum stimmt vielleicht nicht ganz. Wäre es ein Problem, wenn Sie es so nehmen?',
+        // Sie hat es von vornherein zugegeben. Vorgehalten wird daraus keine
+        // Enthüllung, sondern ein Angebot – und das Geld liegt schon da.
+        vorgehalten: 'Das hab ich doch gleich gesagt. Deswegen liegt da ja auch was für Sie.',
         bestechung: {
           betrag: 20,
           text: 'Sie legt einen zusammengefalteten Zwanziger unter die Entschuldigung.',
@@ -98,6 +110,7 @@ export const FIGUREN = [
       12: {
         verstoss: VERSTOSS.DATUM,
         text: 'Letzter Tag. Schauen Sie einmal drüber, ja?',
+        vorgehalten: 'Am letzten Tag. Wirklich? Nehmen Sie es einfach, ich bin morgen weg.',
         zeileAus: (verlauf) => {
           if (verlauf.some((x) => x.entscheidung === 'bestochen')) {
             return 'Letzter Tag. Ich hab diesmal nichts dabei – nur den Zettel.'
@@ -125,6 +138,10 @@ export const FIGUREN = [
         verstoss: VERSTOSS.ATTEST_FEHLT,
         text: 'Wir waren nicht beim Arzt. Mein Vater konnte nicht, er liegt selbst flach. Es stimmt aber alles.',
         wennDurchgelassen: 'Sie waren neulich nett zu mir. Ich hab kein Attest, wir waren nicht beim Arzt.',
+        // Er hat nichts zu gestehen: Der Verstoß steht fest und der Grund
+        // stimmt trotzdem. Ihn damit zu konfrontieren fördert nichts zutage –
+        // es zeigt nur, dass man ihn zum Sagen gezwungen hat.
+        vorgehalten: 'Ich weiß. Es fehlt. Ich kann Ihnen nur sagen, dass es so war.',
       },
       12: {
         verstoss: VERSTOSS.KEINER,

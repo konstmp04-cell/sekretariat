@@ -230,3 +230,22 @@ body {
     ),
     radial-gradient(ellipse 70% 55% at 50% 34%, rgb(212 180 120 / 0.16), transparent 70%);
 }
+
+/* Antippbare Felder auf den Dokumenten.
+   Der Zeiger und der Messingsaum sind der einzige Hinweis darauf, dass sich
+   hier etwas anfassen lässt – als Schatten gesetzt und nicht als Hintergrund,
+   weil die Markierung selbst über den Hintergrund läuft und die beiden sich
+   sonst gegenseitig überschreiben. */
+.feld-aktiv {
+  cursor: pointer;
+}
+
+.feld-aktiv:hover {
+  box-shadow: 0 0 0 2px rgb(185 150 89 / 0.38);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feld-aktiv {
+    transition: none;
+  }
+}
